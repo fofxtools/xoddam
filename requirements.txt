@@ -1,0 +1,5 @@
+# Python tools for asset work (not needed to run the game).
+# Install with: python -m pip install -r requirements.txt
+# Pillow is used by the create-game-assets skill scripts (asset_report.py, build_preview_sheet.py)
+# and by our sprite cut-out tools. Installed and tested with Pillow 13.0.0 on Python 3.12.
+Pillow>=10,<14

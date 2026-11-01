@@ -1,0 +1,65 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/enemy.gd" id="1"]
+
+[sub_resource type="RectangleShape2D" id="1"]
+size = Vector2(84, 44)
+
+[node name="Bat" type="CharacterBody2D"]
+collision_layer = 0
+collision_mask = 0
+script = ExtResource("1")
+kind = "bat"
+speed = 90.0
+patrol_range = 192.0
+height = 44.0
+trex_defeats = true
+flying = true
+
+[node name="Body" type="ColorRect" parent="."]
+offset_left = -28.0
+offset_top = -44.0
+offset_right = 28.0
+offset_bottom = 0.0
+pivot_offset = Vector2(28, 44)
+color = Color(0.3, 0.22, 0.42, 1)
+
+[node name="WingL" type="ColorRect" parent="Body"]
+layout_mode = 0
+offset_left = -26.0
+offset_top = 4.0
+offset_right = 0.0
+offset_bottom = 22.0
+color = Color(0.45, 0.33, 0.62, 1)
+
+[node name="WingR" type="ColorRect" parent="Body"]
+layout_mode = 0
+offset_left = 56.0
+offset_top = 4.0
+offset_right = 82.0
+offset_bottom = 22.0
+color = Color(0.45, 0.33, 0.62, 1)
+
+[node name="EyeL" type="ColorRect" parent="Body"]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 14.0
+offset_right = 24.0
+offset_bottom = 24.0
+color = Color(1, 0.9, 0.3, 1)
+
+[node name="EyeR" type="ColorRect" parent="Body"]
+layout_mode = 0
+offset_left = 32.0
+offset_top = 14.0
+offset_right = 42.0
+offset_bottom = 24.0
+color = Color(1, 0.9, 0.3, 1)
+
+[node name="Hitbox" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 2
+
+[node name="HitShape" type="CollisionShape2D" parent="Hitbox"]
+position = Vector2(0, -22)
+shape = SubResource("1")
