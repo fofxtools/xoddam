@@ -41,6 +41,7 @@ var _body_w := 64.0
 
 
 func _ready() -> void:
+	add_to_group("player")
 	_gravity = 2.0 * jump_height / (time_to_apex * time_to_apex)
 	_jump_velocity = -2.0 * jump_height / time_to_apex
 	($Collision as CollisionShape2D).shape = ($Collision as CollisionShape2D).shape.duplicate()
@@ -110,6 +111,12 @@ func _physics_process(delta: float) -> void:
 		velocity.x = move_toward(velocity.x, 0.0, friction * delta)
 
 	move_and_slide()
+
+	# Head-bump: hitting the underside of something that reacts (an item block) triggers it.
+	for i in get_slide_collision_count():
+		var hit := get_slide_collision(i)
+		if hit.get_normal().y > 0.7 and hit.get_collider() != null and hit.get_collider().has_method("hit_from_below"):
+			hit.get_collider().hit_from_below(self)
 
 	if global_position.y > fall_limit:
 		die("pit")

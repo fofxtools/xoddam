@@ -1,26 +1,41 @@
 extends Node2D
-## Greybox level built from an ASCII map in levels/*.txt (see levels/README.md for the legend).
-## '#' solid, '=' one-way, '^' spikes, 'F' goal flag (top cell), 'P' player start,
-## 'c' coin, 'e' blob enemy, 'T' T-Rex egg power-up.
+## Greybox level built from an ASCII map (levels/*.txt; the legend is in levels/README.md).
 
 const TILE := 64
 const Hud := preload("res://scripts/hud.gd")
 const PauseMenu := preload("res://scripts/pause_menu.gd")
 const DebugTools := preload("res://scripts/debug_tools.gd")
-const EnemyScene := preload("res://scenes/enemy.tscn")
-const BruteScene := preload("res://scenes/brute.tscn")
-const BatScene := preload("res://scenes/bat.tscn")
+const EggScene := preload("res://scenes/egg.tscn")
+const ItemBlockScene := preload("res://scenes/item_block.tscn")
+const HeartScene := preload("res://scenes/heart_pickup.tscn")
+const GateScene := preload("res://scenes/boss_gate.tscn")
+
+## Map letter -> enemy scene.
+const ENEMIES := {
+	"w": preload("res://scenes/enemies/walker.tscn"),
+	"f": preload("res://scenes/enemies/flyer.tscn"),
+	"s": preload("res://scenes/enemies/swooper.tscn"),
+	"j": preload("res://scenes/enemies/hopper.tscn"),
+	"r": preload("res://scenes/enemies/chaser.tscn"),
+	"a": preload("res://scenes/enemies/armoured.tscn"),
+	"u": preload("res://scenes/enemies/urchin.tscn"),
+	"k": preload("res://scenes/enemies/shell.tscn"),
+	"t": preload("res://scenes/enemies/turret.tscn"),
+	"p": preload("res://scenes/enemies/popper.tscn"),
+	"h": preload("res://scenes/enemies/heavy.tscn"),
+	"B": preload("res://scenes/enemies/boss.tscn"),
+	"C": preload("res://scenes/enemies/charger_boss.tscn"),
+}
 
 const COL_SKY := Color("#a9d6f5")
 const COL_SOLID := Color("#5b6b82")
 const COL_TOP := Color("#7dbb4a")
 const COL_ONEWAY := Color("#c8913f")
 const COL_SPIKE := Color("#d64545")
-const COL_POLE := Color("#eeeeee")
-const COL_FLAG := Color("#f2c14e")
 const COL_COIN := Color("#f7c531")
-const COL_EGG := Color("#f6e7b0")
-const COL_EGG_SPOT := Color("#e0703a")
+const COL_CAGE := Color("#9ea3b0")
+const COL_PUPPY := Color("#b87f4c")
+const COL_PUPPY_DARK := Color("#7d4f2c")
 
 @export_file("*.txt") var map_path := "res://levels/level_01.txt"
 
@@ -28,10 +43,16 @@ var spawn := Vector2.ZERO
 ## Debug warp targets from the map digits 1-3 (number -> position). Only used by debug_tools.gd.
 var warp_points := {}
 var level_size := Vector2.ZERO
+
 var _map: PackedStringArray = []
 var _won := false
 var _spikes: Array[Area2D] = []
 var _pause_menu: CanvasLayer
+var _cage: Node2D
+var _puppy: Node2D
+var _goal_area: Area2D
+var _gates: Array[StaticBody2D] = []
+var _rattling := false
 var _level_start_ms := Time.get_ticks_msec()
 
 @onready var player: CharacterBody2D = $Player
@@ -39,6 +60,8 @@ var _level_start_ms := Time.get_ticks_msec()
 
 func _ready() -> void:
 	RenderingServer.set_default_clear_color(COL_SKY)
+	if GameState.map_override != "":
+		map_path = GameState.map_override
 	_load_map()
 	GameState.begin_level()
 	player.apply_form()
@@ -48,6 +71,7 @@ func _ready() -> void:
 	add_child(world)
 	move_child(world, 0)
 	_build(world)
+	_link_gates(world)
 
 	add_child(Hud.new())
 	_pause_menu = PauseMenu.new()
@@ -56,9 +80,9 @@ func _ready() -> void:
 		add_child(DebugTools.new())
 
 	if spawn == Vector2.ZERO:
-		push_error("level has no player start 'P' in the map; player will spawn at the origin")
-	GameState.log_event("level_built", "size=%s spawn=%s coins=%d enemies=%d eggs=%d spikes=%d %s" % [
-		level_size, spawn, _count_cells("c"), _count_cells("e") + _count_cells("B") + _count_cells("b"), _count_cells("T"), _spikes.size(), GameState.snapshot(),
+		push_error("level has no player start 'S' in the map; player will spawn at the origin")
+	GameState.log_event("level_built", "map=%s size=%s spawn=%s coins=%d enemies=%d eggs=%d spikes=%d %s" % [
+		map_path, level_size, spawn, _count_cells("c"), _count_enemies(), _count_cells("e") + _count_cells("?"), _spikes.size(), GameState.snapshot(),
 	])
 
 	player.fall_limit = level_size.y + 300.0
@@ -77,7 +101,8 @@ func _load_map() -> void:
 	if text.is_empty():
 		push_error("cannot read level map %s (missing from the export? add *.txt to the export filters)" % map_path)
 		return
-	_map = text.replace("\r", "").trim_suffix("\n").split("\n")
+	var lf := String.chr(10)
+	_map = text.replace(String.chr(13), "").trim_suffix(lf).split(lf)
 
 
 func _cell(x: int, y: int) -> String:
@@ -85,6 +110,20 @@ func _cell(x: int, y: int) -> String:
 		return " "
 	var row := _map[y]
 	return row[x] if x < row.length() else " "
+
+
+func _count_cells(ch: String) -> int:
+	var n := 0
+	for row in _map:
+		n += row.count(ch)
+	return n
+
+
+func _count_enemies() -> int:
+	var n := 0
+	for ch in ENEMIES:
+		n += _count_cells(ch)
+	return n
 
 
 func _build(parent: Node2D) -> void:
@@ -97,7 +136,11 @@ func _build(parent: Node2D) -> void:
 	var done := {}
 	for y in rows:
 		for x in cols:
-			match _cell(x, y):
+			var c := _cell(x, y)
+			if ENEMIES.has(c):
+				_add_enemy(parent, ENEMIES[c], x, y)
+				continue
+			match c:
 				"#":
 					if done.has(Vector2i(x, y)):
 						continue
@@ -115,36 +158,42 @@ func _build(parent: Node2D) -> void:
 					_add_oneway(parent, x, y)
 				"^":
 					_add_spikes(parent, x, y)
-				"F":
+				"G":
 					_add_goal(parent, x, y)
-				"P":
+				"S":
 					spawn = Vector2(x * TILE + TILE / 2.0, (y + 1) * TILE)
 				"1", "2", "3":
-					warp_points[int(_cell(x, y))] = Vector2(x * TILE + TILE / 2.0, (y + 1) * TILE)
+					warp_points[int(c)] = Vector2(x * TILE + TILE / 2.0, (y + 1) * TILE)
 				"c":
 					_add_coin(parent, x, y)
-				"T":
-					_add_egg(parent, x, y)
 				"e":
-					_add_enemy(parent, EnemyScene, x, y)
-				"B":
-					_add_enemy(parent, BruteScene, x, y)
-				"b":
-					_add_enemy(parent, BatScene, x, y)
+					_add_egg(parent, x, y)
+				"?":
+					_add_item_block(parent, x, y)
+				"+":
+					_add_heart(parent, x, y)
+				"D":
+					_add_gate(parent, x, y)
+	_add_boundaries(parent)
 
 
-## Enemies stand on the bottom of their map cell; bats fly around the cell they are placed in.
+## Invisible walls at both ends, so the player (and enemies) cannot walk off the edge of the level.
+func _add_boundaries(parent: Node2D) -> void:
+	for side in [-1.0, 1.0]:
+		var wall := StaticBody2D.new()
+		wall.position = Vector2(-TILE if side < 0.0 else level_size.x, -2000.0)
+		var col := CollisionShape2D.new()
+		col.shape = _rect_shape(Vector2(TILE, level_size.y + 4000.0))
+		col.position = Vector2(TILE / 2.0, (level_size.y + 4000.0) / 2.0)
+		wall.add_child(col)
+		parent.add_child(wall)
+
+
+## Enemies stand on the bottom of their map cell; flyers fly around the cell they are placed in.
 func _add_enemy(parent: Node2D, scene: PackedScene, x: int, y: int) -> void:
 	var enemy := scene.instantiate()
 	enemy.position = Vector2(x * TILE + TILE / 2.0, (y + 1) * TILE)
 	parent.add_child(enemy)
-
-
-func _count_cells(ch: String) -> int:
-	var n := 0
-	for row in _map:
-		n += row.count(ch)
-	return n
 
 
 func _row_is_free_solid(x: int, y: int, w: int, done: Dictionary) -> bool:
@@ -228,14 +277,45 @@ func _add_coin(parent: Node2D, x: int, y: int) -> void:
 	area.add_child(_ellipse(Vector2.ZERO, 8.0, 8.0, Color("#ffe27a")))
 
 
+## A loose egg lying on the ground (it falls to the floor from its cell). Mostly used in test rooms.
 func _add_egg(parent: Node2D, x: int, y: int) -> void:
-	var area := _pickup_area(parent, x, y, 30.0, _on_egg_entered)
-	area.position.y += 8.0
-	area.add_child(_ellipse(Vector2.ZERO, 24.0, 30.0, Color("#7a4a0c")))
-	area.add_child(_ellipse(Vector2.ZERO, 21.0, 27.0, COL_EGG))
-	area.add_child(_ellipse(Vector2(-7, -8), 6.0, 6.0, COL_EGG_SPOT))
-	area.add_child(_ellipse(Vector2(8, 4), 7.0, 7.0, COL_EGG_SPOT))
-	area.add_child(_ellipse(Vector2(-6, 14), 5.0, 5.0, COL_EGG_SPOT))
+	var egg: CharacterBody2D = EggScene.instantiate()
+	egg.position = Vector2(x * TILE + TILE / 2.0, (y + 1) * TILE - 30.0)
+	parent.add_child(egg)
+
+
+## A boss gate: a tall barrier that opens when the nearest boss to its left is defeated.
+func _add_gate(parent: Node2D, x: int, y: int) -> void:
+	var gate: StaticBody2D = GateScene.instantiate()
+	gate.position = Vector2(x * TILE + TILE / 2.0, (y + 1) * TILE)
+	parent.add_child(gate)
+	_gates.append(gate)
+
+
+func _link_gates(world: Node2D) -> void:
+	for gate in _gates:
+		var nearest: Node = null
+		for n in world.get_children():
+			if n is CharacterBody2D and n.get("kind") == "boss" and n.position.x < gate.position.x:
+				if nearest == null or n.position.x > nearest.position.x:
+					nearest = n
+		if nearest == null:
+			push_error("boss gate at x=%d has no boss to its left; it will open at once" % int(gate.position.x))
+		gate.boss = nearest
+
+
+## A heart that heals one heart. Its map cell is the cell it floats in (the bottom cell of the ground row).
+func _add_heart(parent: Node2D, x: int, y: int) -> void:
+	var heart: Area2D = HeartScene.instantiate()
+	heart.position = Vector2(x * TILE + TILE / 2.0, y * TILE + 24.0)
+	parent.add_child(heart)
+
+
+## An item block: bump it from below and it releases the egg. Its map cell is the block's own cell.
+func _add_item_block(parent: Node2D, x: int, y: int) -> void:
+	var block: StaticBody2D = ItemBlockScene.instantiate()
+	block.position = Vector2(x * TILE + TILE / 2.0, y * TILE + TILE / 2.0)
+	parent.add_child(block)
 
 
 func _add_spikes(parent: Node2D, x: int, y: int) -> void:
@@ -257,19 +337,35 @@ func _add_spikes(parent: Node2D, x: int, y: int) -> void:
 	parent.add_child(area)
 
 
+## The goal: a caged puppy. 'G' marks the cell it stands on. Touching the cage frees the puppy.
 func _add_goal(parent: Node2D, x: int, y: int) -> void:
 	var area := Area2D.new()
-	# 'F' marks the bottom cell (like 'P', 'e' and 'T'); the flag is 2 tiles tall, so it rises from there.
-	area.position = Vector2(x * TILE, (y - 1) * TILE)
+	area.position = Vector2(x * TILE + TILE / 2.0, (y + 1) * TILE)
 	area.collision_layer = 0
 	area.collision_mask = 2
 	var col := CollisionShape2D.new()
-	col.shape = _rect_shape(Vector2(TILE, TILE * 2))
-	col.position = Vector2(TILE / 2.0, TILE)
+	col.shape = _rect_shape(Vector2(96, 100))
+	col.position = Vector2(0, -50)
 	area.add_child(col)
-	area.add_child(_color_rect(Vector2(TILE / 2.0 - 4, 0), Vector2(8, TILE * 2), COL_POLE))
-	area.add_child(_color_rect(Vector2(TILE / 2.0 + 4, 8), Vector2(44, 30), COL_FLAG))
-	area.body_entered.connect(_on_goal_entered)
+
+	_puppy = Node2D.new()
+	_puppy.add_child(_color_rect(Vector2(-22, -40), Vector2(44, 28), COL_PUPPY))
+	_puppy.add_child(_color_rect(Vector2(8, -64), Vector2(30, 28), COL_PUPPY))
+	_puppy.add_child(_color_rect(Vector2(30, -58), Vector2(10, 14), COL_PUPPY_DARK))
+	_puppy.add_child(_color_rect(Vector2(26, -56), Vector2(6, 6), Color.BLACK))
+	_puppy.add_child(_color_rect(Vector2(-30, -54), Vector2(10, 22), COL_PUPPY_DARK))
+	_puppy.add_child(_color_rect(Vector2(-16, -14), Vector2(10, 14), COL_PUPPY_DARK))
+	_puppy.add_child(_color_rect(Vector2(8, -14), Vector2(10, 14), COL_PUPPY_DARK))
+	area.add_child(_puppy)
+
+	_cage = Node2D.new()
+	for i in 6:
+		_cage.add_child(_color_rect(Vector2(-42 + i * 16, -92), Vector2(6, 92), COL_CAGE))
+	_cage.add_child(_color_rect(Vector2(-46, -98), Vector2(92, 10), COL_CAGE))
+	_cage.add_child(_color_rect(Vector2(-46, -8), Vector2(92, 8), COL_CAGE))
+	area.add_child(_cage)
+
+	_goal_area = area
 	parent.add_child(area)
 
 
@@ -278,18 +374,36 @@ func _physics_process(_delta: float) -> void:
 	for spike in _spikes:
 		if spike.get_overlapping_bodies().has(player):
 			player.hurt("spikes")
+	# The cage opens only once every boss is defeated; until then it just rattles.
+	if _goal_area != null and not _won and not player.dead and _goal_area.overlaps_body(player):
+		if _boss_alive():
+			_rattle_cage()
+		else:
+			_win()
+
+
+func _boss_alive() -> bool:
+	for n in $World.get_children():
+		if n is CharacterBody2D and n != player and n.get("kind") == "boss" and not n.dead:
+			return true
+	return false
+
+
+func _rattle_cage() -> void:
+	if _rattling or _cage == null:
+		return
+	_rattling = true
+	var shake := create_tween()
+	for i in 3:
+		shake.tween_property(_cage, "position:x", 6.0, 0.05)
+		shake.tween_property(_cage, "position:x", -6.0, 0.05)
+	shake.tween_property(_cage, "position:x", 0.0, 0.05)
+	shake.tween_callback(func(): _rattling = false)
 
 
 func _on_coin_entered(body: Node2D, area: Area2D) -> void:
 	if body == player and not player.dead:
 		GameState.add_coin()
-		area.queue_free()
-
-
-func _on_egg_entered(body: Node2D, area: Area2D) -> void:
-	if body == player and not player.dead:
-		GameState.log_event("egg_collected", "pos=%s" % area.global_position.round())
-		player.become_trex()
 		area.queue_free()
 
 
@@ -343,17 +457,19 @@ func _try_again() -> void:
 	get_tree().reload_current_scene()
 
 
-func _on_goal_entered(body: Node2D) -> void:
-	if body != player or _won:
+func _win() -> void:
+	if _won:
 		return
 	_won = true
 	_pause_menu.enabled = false
-	GameState.log_event("goal_reached", "time_in_level=%.1fs" % ((Time.get_ticks_msec() - _level_start_ms) / 1000.0))
-	GameState.complete_level()
+	GameState.log_event("goal_reached", "time_in_level=%.1fs test=%s" % [(Time.get_ticks_msec() - _level_start_ms) / 1000.0, GameState.test_mode])
+	if not GameState.test_mode:
+		GameState.complete_level()
+	_open_cage()
 	var layer := CanvasLayer.new()
 	layer.layer = 50
 	var label := Label.new()
-	label.text = "Level complete!"
+	label.text = "Puppy rescued!"
 	label.add_theme_font_size_override("font_size", 96)
 	label.add_theme_color_override("font_color", Color.WHITE)
 	label.add_theme_color_override("font_outline_color", Color("#1d2b4a"))
@@ -363,5 +479,21 @@ func _on_goal_entered(body: Node2D) -> void:
 	label.grow_vertical = Control.GROW_DIRECTION_BOTH
 	layer.add_child(label)
 	add_child(layer)
-	await get_tree().create_timer(2.5).timeout
-	get_tree().change_scene_to_file(GameState.MENU_SCENE)
+	await get_tree().create_timer(2.8).timeout
+	var next := GameState.level_index + 1
+	if not GameState.test_mode and next < GameState.LEVELS.size():
+		GameState.start_level(next)
+	else:
+		get_tree().change_scene_to_file(GameState.MENU_SCENE)
+
+
+## The cage lifts away and fades, and the puppy hops for joy.
+func _open_cage() -> void:
+	if _cage == null or _puppy == null:
+		return
+	var lift := create_tween().set_parallel(true)
+	lift.tween_property(_cage, "modulate:a", 0.0, 0.5)
+	lift.tween_property(_cage, "position:y", -50.0, 0.5)
+	var hop := create_tween().set_loops(5)
+	hop.tween_property(_puppy, "position:y", -46.0, 0.18).set_ease(Tween.EASE_OUT)
+	hop.tween_property(_puppy, "position:y", 0.0, 0.18).set_ease(Tween.EASE_IN)

@@ -2,6 +2,7 @@ extends Control
 ## Title screen: Play (new game) and Continue (only when a save exists).
 
 const HelpPanel := preload("res://scripts/help_panel.gd")
+const TestLevelMenu := preload("res://scripts/test_level_menu.gd")
 const BUTTON_SIZE := Vector2(640, 150)
 
 
@@ -39,6 +40,14 @@ func _ready() -> void:
 	var help_button := _button("Help")
 	help_button.pressed.connect(help.open)
 	box.add_child(help_button)
+
+	# Debug builds only: pick one of the small test rooms in levels/test/.
+	if OS.is_debug_build():
+		var tests := TestLevelMenu.new()
+		add_child(tests)
+		var tests_button := _button("Debug Level Select")
+		tests_button.pressed.connect(tests.open)
+		box.add_child(tests_button)
 
 	play.grab_focus()
 

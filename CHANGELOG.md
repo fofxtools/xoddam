@@ -1,9 +1,27 @@
 # Changelog
 
-Versions follow [Semantic Versioning](https://semver.org/): while the game is `0.x`, a new feature bumps the
-middle number (0.2.0) and a bug fix bumps the last (0.1.1). `1.0.0` is the first complete, shippable game.
+## [0.1.1] - 2026-11-01
 
-## 0.1.0 - 2026-11-01 - Playable greybox
+Still plain coloured boxes. The story is now in: a boy who turns into a T-Rex and frees caged puppies from aliens.
+
+### Added
+- **Levels 2, 3 and 4** (level 4 is 200 tiles). Freeing the puppy leads straight into the next level.
+- **Caged puppy** goal replaces the flag. In levels with bosses, the cage stays shut until every boss is defeated.
+- **Bosses:** the spiky boss (3 stomps, only while its spikes are in) and the charger boss (3 stomps, rushes you). Both get faster after each stomp.
+- **Item block** (`?`): bump it from below and the T-Rex egg pops out. Replaces the loose egg in the levels.
+- **Heart pickup:** restores full health. It waits if you are already at full health.
+- **Boss gate:** a tall gate that stays shut until the boss before it is defeated (level 4).
+- **More enemies:** chaser, urchin (spikes go out and in), swooper, hopper, armoured, shell, turret and popper. Levels use walkers, flyers, heavies, urchins, chasers and turrets; the rest are in the test rooms.
+- **Debug Level Select** (debug builds): jump to any level, or to a one-room test for each enemy type and the item block.
+- **Tests:** `tests/run_tests.gd` (about 20 seconds, see `tests/README.md`) checks the game rules, every enemy type and the level maps.
+
+### Changed
+- **Enemy names and map letters:** blob is now the walker, brute the heavy, bat the flyer. Legend in `levels/README.md`.
+- **Spiky enemies** (urchin and boss): spikes out for 1.5 s, in for 3 s.
+- **A flyer rising into a player standing above it** now counts as a stomp. Jumping up into one from below still hurts.
+- **Level maps** have invisible walls at both ends, so nobody walks off the edge.
+
+## [0.1.0] - 2026-11-01
 
 First playable version. Everything is plain coloured boxes; the real art comes next.
 

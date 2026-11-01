@@ -39,7 +39,7 @@ func _ready() -> void:
 	_refresh()
 
 
-func _icon(kind: int) -> Control:
+func _icon(kind: HudIcon.Kind) -> Control:
 	var icon := HudIcon.new()
 	icon.kind = kind
 	return icon

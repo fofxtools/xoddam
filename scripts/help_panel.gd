@@ -39,9 +39,9 @@ func _ready() -> void:
 
 func _lines() -> PackedStringArray:
 	return PackedStringArray([
-		"Run and jump to reach the flag at the end.",
-		"Jump on blobs to squash them. A blob that bumps you costs a heart (you have %d)." % GameState.MAX_HEARTS,
-		"Find the egg to turn into a T-Rex! The T-Rex squashes blobs and bats just by touching them, and can take one hit.",
+		"Run and jump to the cage at the end and free the puppy!",
+		"Jump on aliens to squash them. An alien that bumps you costs a heart (you have %d)." % GameState.MAX_HEARTS,
+		"Bump the ? block from below to get an egg, and grab it to turn into a T-Rex! The T-Rex defeats small aliens just by touching them, and can take one hit.",
 		"Collect %d coins to win an extra life." % GameState.COINS_PER_LIFE,
 		"Falling in a hole, or losing all your hearts, costs a life.",
 	])

@@ -1,0 +1,86 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/enemy.gd" id="1"]
+
+[sub_resource type="RectangleShape2D" id="1"]
+size = Vector2(64, 56)
+
+[sub_resource type="RectangleShape2D" id="2"]
+size = Vector2(76, 60)
+
+[node name="Armoured" type="CharacterBody2D"]
+collision_layer = 4
+collision_mask = 1
+script = ExtResource("1")
+kind = "armoured"
+speed = 80.0
+height = 60.0
+stompable = false
+trex_defeats = true
+ledge_offset = 38.0
+
+[node name="Body" type="ColorRect" parent="."]
+offset_left = -36.0
+offset_top = -60.0
+offset_right = 36.0
+offset_bottom = 0.0
+pivot_offset = Vector2(36.0, 60)
+color = Color(0.55, 0.58, 0.65, 1)
+
+[node name="Spike1" type="ColorRect" parent="Body"]
+layout_mode = 0
+offset_left = 8.0
+offset_top = -14.0
+offset_right = 24.0
+offset_bottom = 0.0
+color = Color(0.85, 0.2, 0.2, 1)
+
+[node name="Spike2" type="ColorRect" parent="Body"]
+layout_mode = 0
+offset_left = 28.0
+offset_top = -14.0
+offset_right = 44.0
+offset_bottom = 0.0
+color = Color(0.85, 0.2, 0.2, 1)
+
+[node name="Spike3" type="ColorRect" parent="Body"]
+layout_mode = 0
+offset_left = 48.0
+offset_top = -14.0
+offset_right = 64.0
+offset_bottom = 0.0
+color = Color(0.85, 0.2, 0.2, 1)
+
+[node name="EyeL" type="ColorRect" parent="Body"]
+layout_mode = 0
+offset_left = 9.600000000000001
+offset_top = 18.0
+offset_right = 21.6
+offset_bottom = 32.0
+color = Color(1, 1, 1, 1)
+
+[node name="EyeR" type="ColorRect" parent="Body"]
+layout_mode = 0
+offset_left = 50.4
+offset_top = 18.0
+offset_right = 62.4
+offset_bottom = 32.0
+color = Color(1, 1, 1, 1)
+
+[node name="Collision" type="CollisionShape2D" parent="."]
+position = Vector2(0, -30.0)
+shape = SubResource("1")
+
+[node name="Hitbox" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 2
+
+[node name="HitShape" type="CollisionShape2D" parent="Hitbox"]
+position = Vector2(0, -30.0)
+shape = SubResource("2")
+
+[node name="Ledge" type="RayCast2D" parent="."]
+position = Vector2(38.0, -4)
+target_position = Vector2(0, 24)
+collision_mask = 1
+

@@ -25,9 +25,9 @@ func _process(_delta: float) -> void:
 
 
 func _draw() -> void:
-	var pressed := Input.is_action_pressed(action)
-	var base := Color(1, 1, 1, 0.75 if pressed else 0.32)
-	var ink := Color(0.1, 0.12, 0.2, 0.9 if pressed else 0.6)
+	var is_down := Input.is_action_pressed(action)
+	var base := Color(1, 1, 1, 0.75 if is_down else 0.32)
+	var ink := Color(0.1, 0.12, 0.2, 0.9 if is_down else 0.6)
 	draw_circle(Vector2.ZERO, radius, base)
 	draw_arc(Vector2.ZERO, radius, 0.0, TAU, 48, ink, 6.0)
 	var s := radius * 0.42

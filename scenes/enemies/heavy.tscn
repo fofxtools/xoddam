@@ -1,0 +1,78 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/enemy.gd" id="1"]
+
+[sub_resource type="RectangleShape2D" id="1"]
+size = Vector2(88, 76)
+
+[sub_resource type="RectangleShape2D" id="2"]
+size = Vector2(100, 80)
+
+[node name="Heavy" type="CharacterBody2D"]
+collision_layer = 4
+collision_mask = 1
+script = ExtResource("1")
+kind = "heavy"
+speed = 70.0
+patrol_range = 256.0
+height = 80.0
+trex_defeats = false
+ledge_offset = 56.0
+
+[node name="Body" type="ColorRect" parent="."]
+offset_left = -48.0
+offset_top = -80.0
+offset_right = 48.0
+offset_bottom = 0.0
+pivot_offset = Vector2(48.0, 80)
+color = Color(0.78, 0.27, 0.2, 1)
+
+[node name="EyeL" type="ColorRect" parent="Body"]
+layout_mode = 0
+offset_left = 12.799999999999997
+offset_top = 24.0
+offset_right = 28.799999999999997
+offset_bottom = 42.0
+color = Color(1, 1, 1, 1)
+
+[node name="EyeR" type="ColorRect" parent="Body"]
+layout_mode = 0
+offset_left = 67.2
+offset_top = 24.0
+offset_right = 83.2
+offset_bottom = 42.0
+color = Color(1, 1, 1, 1)
+
+[node name="BrowL" type="ColorRect" parent="Body"]
+layout_mode = 0
+offset_left = 18.0
+offset_top = 14.0
+offset_right = 42.0
+offset_bottom = 21.0
+color = Color(0.12, 0.05, 0.1, 1)
+
+[node name="BrowR" type="ColorRect" parent="Body"]
+layout_mode = 0
+offset_left = 54.0
+offset_top = 14.0
+offset_right = 78.0
+offset_bottom = 21.0
+color = Color(0.12, 0.05, 0.1, 1)
+
+[node name="Collision" type="CollisionShape2D" parent="."]
+position = Vector2(0, -40.0)
+shape = SubResource("1")
+
+[node name="Hitbox" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 2
+
+[node name="HitShape" type="CollisionShape2D" parent="Hitbox"]
+position = Vector2(0, -40.0)
+shape = SubResource("2")
+
+[node name="Ledge" type="RayCast2D" parent="."]
+position = Vector2(56.0, -4)
+target_position = Vector2(0, 24)
+collision_mask = 1
+

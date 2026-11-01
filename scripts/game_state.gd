@@ -10,7 +10,7 @@ const MAX_HEARTS := 3
 const START_LIVES := 3
 const COINS_PER_LIFE := 20
 const MENU_SCENE := "res://scenes/main_menu.tscn"
-const LEVELS: PackedStringArray = ["res://scenes/level_01.tscn"]
+const LEVELS: PackedStringArray = ["res://scenes/level_01.tscn", "res://scenes/level_02.tscn", "res://scenes/level_03.tscn", "res://scenes/level_04.tscn"]
 const SLOW_FRAME_MS := 100.0
 const SLOW_FRAME_LOG_INTERVAL_MS := 2000
 
@@ -20,6 +20,10 @@ var coins := 0
 var is_trex := false
 var level_index := 0
 var levels_completed := 0
+## Test levels (debug only, picked from the title screen): no lives lost, nothing saved.
+var test_mode := false
+## When set, the level scene loads this map instead of its own (kept across restarts of the level).
+var map_override := ""
 
 var _last_slow_log_ms := -SLOW_FRAME_LOG_INTERVAL_MS
 
@@ -63,6 +67,13 @@ func begin_level() -> void:
 	changed.emit()
 
 
+## Heal hearts, never above the maximum.
+func heal(amount: int = 1) -> void:
+	hearts = mini(hearts + amount, MAX_HEARTS)
+	log_event("heal", snapshot())
+	changed.emit()
+
+
 func add_coin() -> void:
 	coins += 1
 	if coins % COINS_PER_LIFE == 0:
@@ -73,6 +84,10 @@ func add_coin() -> void:
 
 ## Called when the player runs out of hearts or falls. Returns true if the run is over.
 func lose_life() -> bool:
+	if test_mode:
+		log_event("life_lost", "test mode, lives unchanged: " + snapshot())
+		changed.emit()
+		return false
 	lives = maxi(lives - 1, 0)
 	log_event("life_lost", snapshot())
 	changed.emit()
@@ -100,7 +115,32 @@ func continue_game() -> void:
 	start_level(clampi(levels_completed, 0, LEVELS.size() - 1))
 
 
+## Debug only: jump straight into one of the real levels. Like a test level: no lives lost, nothing saved,
+## and it ends at the title screen instead of advancing.
+func start_debug_level(index: int) -> void:
+	test_mode = true
+	map_override = ""
+	lives = START_LIVES
+	level_index = index
+	begin_level()
+	log_event("start_debug_level", "index=%d scene=%s" % [index, LEVELS[index]])
+	get_tree().change_scene_to_file(LEVELS[index])
+
+
+## Debug only: play a single test map (levels/test/*.txt) in the normal level scene.
+func start_test_level(map_path: String) -> void:
+	test_mode = true
+	map_override = map_path
+	lives = START_LIVES
+	level_index = 0
+	begin_level()
+	log_event("start_test_level", "map=%s" % map_path)
+	get_tree().change_scene_to_file(LEVELS[0])
+
+
 func start_level(index: int) -> void:
+	test_mode = false
+	map_override = ""
 	level_index = index
 	begin_level()
 	save_game()
