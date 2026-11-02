@@ -48,7 +48,7 @@ const RISING_LIMIT := 100.0
 @export var hop_speed := 760.0
 
 @export_group("Turret")
-@export var fire_interval := 2.4
+@export var fire_interval := 3.0
 @export var fire_range := 780.0
 @export var projectile_scene: PackedScene
 
@@ -308,6 +308,7 @@ func _stomped(p: CharacterBody2D) -> void:
 		die("stomp")
 	else:
 		_stun = 1.0
+		Audio.play_sfx("boss_hit")
 		speed *= speed_up_per_hit
 		chase_speed *= speed_up_per_hit
 		GameState.log_event("enemy_hit", "kind=%s hits_left=%d speed=%.0f" % [kind, _hits_left, speed])
@@ -331,6 +332,7 @@ func die(how: String = "unknown") -> void:
 	if dead:
 		return
 	dead = true
+	Audio.play_sfx("stomp")
 	GameState.log_event("enemy_defeated", "kind=%s how=%s pos=%s" % [kind, how, global_position.round()])
 	_hitbox.set_deferred("monitoring", false)
 	var tween := create_tween()

@@ -33,6 +33,7 @@ func _ready() -> void:
 	_back.text = "Back"
 	_back.custom_minimum_size = Vector2(520, 130)
 	_back.add_theme_font_size_override("font_size", 72)
+	_back.pressed.connect(func(): Audio.play_sfx("click"))
 	_back.pressed.connect(close)
 	box.add_child(_back)
 
@@ -42,7 +43,7 @@ func _lines() -> PackedStringArray:
 		"Run and jump to the cage at the end and free the puppy!",
 		"Jump on aliens to squash them. An alien that bumps you costs a heart (you have %d)." % GameState.MAX_HEARTS,
 		"Bump the ? block from below to get an egg, and grab it to turn into a T-Rex! The T-Rex defeats small aliens just by touching them, and can take one hit.",
-		"Collect %d coins to win an extra life." % GameState.COINS_PER_LIFE,
+		"Collect %d coins to refill all your hearts." % GameState.COINS_PER_HEAL,
 		"Falling in a hole, or losing all your hearts, costs a life.",
 	])
 

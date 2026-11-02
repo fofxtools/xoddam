@@ -39,6 +39,7 @@ func _physics_process(_delta: float) -> void:
 
 func _open_gate() -> void:
 	_open = true
+	Audio.play_sfx("gate")
 	$Collision.set_deferred("disabled", true)
 	GameState.log_event("gate_opened", "pos=%s" % global_position.round())
 	var tween := create_tween().set_parallel(true)

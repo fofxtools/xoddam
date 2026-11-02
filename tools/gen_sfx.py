@@ -27,6 +27,30 @@ def save(path, samples):
         w.setnchannels(1); w.setsampwidth(2); w.setframerate(R)
         w.writeframes(b"".join(struct.pack("<h", int(max(-1, min(1, s)) * 32767)) for s in samples))
 
+def bonk():
+    # Item block bump: a tiny click then a short, dull falling "bonk".
+    return render([(0, 0, 0.015)], noise=True, vol=0.3) + render([(260, 120, 0.13)], wave_kind="tri", vol=0.7)
+
+
+def roar(seconds=1.4, vol=0.7):
+    # T-Rex roar: a low saw wave whose pitch falls, with a vibrato, a fast growl wobble and rough noise,
+    # soft-clipped for grit, with a quick attack and a slow fade.
+    out, phase, lp = [], 0.0, 0.0
+    n = int(R * seconds)
+    for i in range(n):
+        t = i / n
+        sec = i / R
+        base = 95 - 35 * t
+        phase += (base + 8 * math.sin(2 * math.pi * 24 * sec)) / R
+        saw = 2 * (phase % 1.0) - 1
+        growl = 0.55 + 0.45 * math.sin(2 * math.pi * 31 * sec)
+        lp += 0.12 * (random.uniform(-1, 1) - lp)
+        sample = math.tanh(2.4 * (0.8 * saw * growl + 1.6 * lp))
+        env = min(1.0, t / 0.08) * (1.0 - t) ** 0.7
+        out.append(sample * env * vol)
+    return out
+
+
 random.seed(1)
 sounds = {
     "jump": render([(300, 700, 0.16)]),
@@ -37,6 +61,8 @@ sounds = {
     "extra_life": render([(f, f, 0.1) for f in (659, 784, 1319, 1047, 1175, 1568)]),
     "game_over": render([(f, f, 0.22) for f in (392, 330, 262, 196)], wave_kind="tri"),
     "ui_click": render([(800, 600, 0.05)], vol=0.3),
+    "block": bonk(),
+    "roar": roar(),
 }
 out = sys.argv[1]
 for name, s in sounds.items():

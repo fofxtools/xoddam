@@ -8,8 +8,11 @@ signal changed
 const SAVE_PATH := "user://save.json"
 const MAX_HEARTS := 3
 const START_LIVES := 3
-const COINS_PER_LIFE := 20
+## Every this many coins refill all hearts, and those coins are used up (the counter starts again).
+const COINS_PER_HEAL := 20
 const MENU_SCENE := "res://scenes/main_menu.tscn"
+const VICTORY_SCENE := "res://scenes/victory.tscn"
+const INTRO_SCENE := "res://scenes/intro.tscn"
 const LEVELS: PackedStringArray = ["res://scenes/level_01.tscn", "res://scenes/level_02.tscn", "res://scenes/level_03.tscn", "res://scenes/level_04.tscn"]
 const SLOW_FRAME_MS := 100.0
 const SLOW_FRAME_LOG_INTERVAL_MS := 2000
@@ -70,15 +73,19 @@ func begin_level() -> void:
 ## Heal hearts, never above the maximum.
 func heal(amount: int = 1) -> void:
 	hearts = mini(hearts + amount, MAX_HEARTS)
+	Audio.play_sfx("heart")
 	log_event("heal", snapshot())
 	changed.emit()
 
 
 func add_coin() -> void:
 	coins += 1
-	if coins % COINS_PER_LIFE == 0:
-		lives += 1
-		log_event("extra_life", snapshot())
+	if coins >= COINS_PER_HEAL:
+		coins = 0
+		log_event("coins_refilled_health", snapshot())
+		heal(MAX_HEARTS)  # plays the heart sound and tells the HUD
+		return
+	Audio.play_sfx("coin")
 	changed.emit()
 
 
@@ -152,6 +159,23 @@ func complete_level() -> void:
 	levels_completed = maxi(levels_completed, level_index + 1)
 	log_event("level_complete", "index=%d completed=%d %s" % [level_index, levels_completed, snapshot()])
 	save_game()
+
+
+func is_last_level() -> bool:
+	return level_index >= LEVELS.size() - 1
+
+
+## The whole game is finished: start over from level 1 next time (so Continue is a fresh start).
+## Test and debug runs never touch progress.
+func finish_game(save: bool = true) -> void:
+	if test_mode:
+		return
+	log_event("game_complete", snapshot())
+	levels_completed = 0
+	lives = START_LIVES
+	coins = 0
+	if save:
+		save_game()
 
 
 func has_save() -> bool:

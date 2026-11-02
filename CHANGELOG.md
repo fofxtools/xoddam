@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.1.2] - 2026-11-01
+
+Still plain coloured boxes, but the game now has sound, a story intro and an ending.
+
+### Added
+- **Sound:** effects for jumping, coins, stomps, hits, the egg roar, item block bumps, hearts, rescuing a puppy, game over and menu clicks, plus a different music track for each level. A sound on/off button is on the title screen and in the pause menu, and the choice is remembered.
+- **Intro screen** after pressing Play: aliens fire lasers at scared puppies, with a "Start!" button. Continue skips it.
+- **Victory screen** after the last puppy is freed: confetti, hopping puppies, "Play again" and "Main menu". Finishing the game starts it over, so Continue begins fresh. Debug Level Select can preview it, and finishing level 4 from there shows it too.
+
+### Changed
+- **Coins:** every 20 coins refill your hearts and the coins are used up. They no longer give extra lives.
+- **Egg roar** starts straight away: its sound file began with a short silence, now cut.
+
 ## [0.1.1] - 2026-11-01
 
 Still plain coloured boxes. The story is now in: a boy who turns into a T-Rex and frees caged puppies from aliens.

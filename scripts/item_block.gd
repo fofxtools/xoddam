@@ -19,6 +19,7 @@ func hit_from_below(by: Node2D) -> void:
 	if used:
 		return
 	used = true
+	Audio.play_sfx("block")
 	_rim.color = COL_RIM_USED
 	_face.color = COL_FACE_USED
 	_mark.visible = false

@@ -91,6 +91,7 @@ func _physics_process(delta: float) -> void:
 
 	if _buffer > 0.0 and _coyote > 0.0:
 		velocity.y = _jump_velocity
+		Audio.play_sfx("jump")
 		_buffer = 0.0
 		_coyote = 0.0
 	if Input.is_action_just_released("jump") and velocity.y < 0.0:
@@ -126,6 +127,7 @@ func _physics_process(delta: float) -> void:
 func hurt(source: String = "unknown") -> void:
 	if dead or invincible > 0.0 or god_mode:
 		return
+	Audio.play_sfx("hurt")
 	if GameState.is_trex:
 		GameState.is_trex = false
 		apply_form()
@@ -168,6 +170,7 @@ func become_trex() -> void:
 	GameState.is_trex = true
 	apply_form()
 	GameState.changed.emit()
+	Audio.play_sfx("egg")
 	GameState.log_event("trex_gained", "pos=%s" % global_position.round())
 
 
@@ -175,6 +178,8 @@ func die(cause: String = "unknown") -> void:
 	if dead:
 		return
 	dead = true
+	if cause == "pit":
+		Audio.play_sfx("hurt")
 	GameState.log_event("player_died", "cause=%s pos=%s" % [cause, global_position.round()])
 	velocity = Vector2.ZERO
 	body.visible = false

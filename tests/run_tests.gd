@@ -25,6 +25,9 @@ const TESTS := [
 	"test_boss_gate_blocks_until_the_boss_dies",
 	"test_level_four_has_everything",
 	"test_game_state_rules",
+	"test_audio_is_wired",
+	"test_victory_screen",
+	"test_intro_screen",
 	"test_level_maps_are_valid",
 	"test_levels_load",
 ]
@@ -420,6 +423,72 @@ func test_level_four_has_everything() -> bool:
 	check(widest == 200, "level 4 is 200 tiles wide")
 	check(boss_col > 70 and boss_col < 130, "the first boss is in the middle of the level")
 	check(gate_col > boss_col, "the gate is past the first boss")
+	var block_cols: Array[int] = []
+	for row in rows:
+		for i in row.length():
+			if row[i] == "?":
+				block_cols.append(i)
+	block_cols.sort()
+	check(block_cols.size() == 2 and block_cols[1] > gate_col and block_cols[1] - gate_col <= 8,
+			"the second egg block is just after the boss gate")
+	return true
+
+
+func test_audio_is_wired() -> bool:
+	var audio: Node = root.get_node("Audio")
+	var original_sound_on: bool = audio.sound_on
+	audio.set_sound_on(true, false)
+	for event in audio.SFX_FILES.keys():
+		check(audio.has_sfx(event), "there is a sound file for the event '%s'" % event)
+	var tracks: Array = [audio.MENU_MUSIC] + audio.LEVEL_MUSIC
+	for file in tracks:
+		check(ResourceLoader.exists(audio.MUSIC_DIR + file), "the music file %s exists" % file)
+	check(audio.LEVEL_MUSIC.size() >= gs.LEVELS.size(), "every level has a music track")
+	audio.play_level_music(0)
+	check(audio._music.playing, "level music starts playing")
+	check(audio._music.stream.loop, "level music loops")
+	audio.stop_music()
+	check(not audio._music.playing, "stopping the music stops it")
+
+	# a real jump and a real coin make their sounds
+	await _make_world()
+	for p in audio._sfx_players:
+		p.stop()
+	Input.action_press("jump")
+	await _frames(4)
+	Input.action_release("jump")
+	var playing := 0
+	for p in audio._sfx_players:
+		if p.playing:
+			playing += 1
+	check(playing >= 1, "jumping plays a sound")
+	for p in audio._sfx_players:
+		p.stop()
+	gs.add_coin()
+	playing = 0
+	for p in audio._sfx_players:
+		if p.playing:
+			playing += 1
+	check(playing >= 1, "collecting a coin plays a sound")
+
+	# the on/off switch
+	var master := AudioServer.get_bus_index("Master")
+	audio.set_sound_on(false, false)
+	check(AudioServer.is_bus_mute(master), "turning sound off mutes everything")
+	for p in audio._sfx_players:
+		p.stop()
+	audio.play_sfx("coin")
+	playing = 0
+	for p in audio._sfx_players:
+		if p.playing:
+			playing += 1
+	check(playing == 0, "no sound effects start while sound is off")
+	audio.set_sound_on(true, false)
+	check(not AudioServer.is_bus_mute(master), "turning sound back on unmutes")
+	check(audio.sound_label() == "Sound: On", "the label reads Sound: On when on")
+	audio.set_sound_on(false, false)
+	check(audio.sound_label() == "Sound: Off", "the label reads Sound: Off when off")
+	audio.set_sound_on(original_sound_on, false)
 	return true
 
 
@@ -429,9 +498,14 @@ func test_game_state_rules() -> bool:
 	gs.test_mode = false
 	gs.lives = 3
 	gs.coins = 0
-	for i in gs.COINS_PER_LIFE:
+	gs.hearts = 1
+	for i in gs.COINS_PER_HEAL - 1:
 		gs.add_coin()
-	check(gs.lives == 4, "collecting %d coins gives an extra life" % gs.COINS_PER_LIFE)
+	check(gs.hearts == 1 and gs.coins == gs.COINS_PER_HEAL - 1, "%d coins heal nothing yet" % (gs.COINS_PER_HEAL - 1))
+	gs.add_coin()
+	check(gs.hearts == gs.MAX_HEARTS, "collecting %d coins refills all hearts" % gs.COINS_PER_HEAL)
+	check(gs.coins == 0, "the coins are used up when they refill the hearts")
+	check(gs.lives == 3, "coins no longer give extra lives")
 	gs.lives = 1
 	check(gs.lose_life() == true and gs.lives == 0, "losing the last life is game over")
 	gs.lives = 2
@@ -442,6 +516,35 @@ func test_game_state_rules() -> bool:
 	gs.test_mode = false
 	gs.begin_level()
 	check(gs.hearts == gs.MAX_HEARTS and not gs.is_trex, "a level starts with full hearts and as the boy")
+	return true
+
+
+func test_victory_screen() -> bool:
+	gs.test_mode = true  # so showing the screen does not reset or save the real progress
+	gs.level_index = gs.LEVELS.size() - 1
+	check(gs.is_last_level(), "the final level counts as the last level")
+	gs.level_index = 0
+	check(not gs.is_last_level(), "the first level is not the last level")
+	var screen: Control = load(gs.VICTORY_SCENE).instantiate()
+	root.add_child(screen)
+	await process_frame
+	check(screen.find_children("*", "Button", true, false).size() == 2, "the victory screen has Play again and Main menu")
+	check(screen.find_children("*", "CPUParticles2D", true, false).size() == 1, "the victory screen has confetti")
+	screen.queue_free()
+	await process_frame
+	gs.test_mode = false
+	return true
+
+
+func test_intro_screen() -> bool:
+	var screen: Control = load(gs.INTRO_SCENE).instantiate()
+	root.add_child(screen)
+	await process_frame
+	var buttons := screen.find_children("*", "Button", true, false)
+	check(buttons.size() == 1, "the intro has one button to start the game")
+	check(screen.find_children("*", "Line2D", true, false).size() >= 3, "the intro has alien lasers")
+	screen.queue_free()
+	await process_frame
 	return true
 
 

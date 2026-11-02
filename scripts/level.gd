@@ -9,6 +9,7 @@ const EggScene := preload("res://scenes/egg.tscn")
 const ItemBlockScene := preload("res://scenes/item_block.tscn")
 const HeartScene := preload("res://scenes/heart_pickup.tscn")
 const GateScene := preload("res://scenes/boss_gate.tscn")
+const PuppyArt := preload("res://scripts/puppy.gd")
 
 ## Map letter -> enemy scene.
 const ENEMIES := {
@@ -34,8 +35,6 @@ const COL_ONEWAY := Color("#c8913f")
 const COL_SPIKE := Color("#d64545")
 const COL_COIN := Color("#f7c531")
 const COL_CAGE := Color("#9ea3b0")
-const COL_PUPPY := Color("#b87f4c")
-const COL_PUPPY_DARK := Color("#7d4f2c")
 
 @export_file("*.txt") var map_path := "res://levels/level_01.txt"
 
@@ -63,6 +62,12 @@ func _ready() -> void:
 	if GameState.map_override != "":
 		map_path = GameState.map_override
 	_load_map()
+	# Real levels play their own music; the one-room test levels stay quiet.
+	if GameState.map_override == "":
+		var level_number := GameState.LEVELS.find(scene_file_path)
+		Audio.play_level_music(level_number if level_number >= 0 else GameState.level_index)
+	else:
+		Audio.stop_music()
 	GameState.begin_level()
 	player.apply_form()
 
@@ -348,14 +353,7 @@ func _add_goal(parent: Node2D, x: int, y: int) -> void:
 	col.position = Vector2(0, -50)
 	area.add_child(col)
 
-	_puppy = Node2D.new()
-	_puppy.add_child(_color_rect(Vector2(-22, -40), Vector2(44, 28), COL_PUPPY))
-	_puppy.add_child(_color_rect(Vector2(8, -64), Vector2(30, 28), COL_PUPPY))
-	_puppy.add_child(_color_rect(Vector2(30, -58), Vector2(10, 14), COL_PUPPY_DARK))
-	_puppy.add_child(_color_rect(Vector2(26, -56), Vector2(6, 6), Color.BLACK))
-	_puppy.add_child(_color_rect(Vector2(-30, -54), Vector2(10, 22), COL_PUPPY_DARK))
-	_puppy.add_child(_color_rect(Vector2(-16, -14), Vector2(10, 14), COL_PUPPY_DARK))
-	_puppy.add_child(_color_rect(Vector2(8, -14), Vector2(10, 14), COL_PUPPY_DARK))
+	_puppy = PuppyArt.new()
 	area.add_child(_puppy)
 
 	_cage = Node2D.new()
@@ -414,6 +412,8 @@ func _on_player_died() -> void:
 		return
 	if game_over:
 		GameState.log_event("game_over", GameState.snapshot())
+		Audio.stop_music()
+		Audio.play_sfx("game_over")
 		_pause_menu.enabled = false
 		_show_game_over()
 	else:
@@ -446,6 +446,7 @@ func _show_game_over() -> void:
 	button.text = "Try again"
 	button.custom_minimum_size = Vector2(640, 170)
 	button.add_theme_font_size_override("font_size", 88)
+	button.pressed.connect(func(): Audio.play_sfx("click"))
 	button.pressed.connect(_try_again)
 	box.add_child(button)
 	add_child(layer)
@@ -461,6 +462,7 @@ func _win() -> void:
 	if _won:
 		return
 	_won = true
+	Audio.play_sfx("rescued")
 	_pause_menu.enabled = false
 	GameState.log_event("goal_reached", "time_in_level=%.1fs test=%s" % [(Time.get_ticks_msec() - _level_start_ms) / 1000.0, GameState.test_mode])
 	if not GameState.test_mode:
@@ -480,11 +482,15 @@ func _win() -> void:
 	layer.add_child(label)
 	add_child(layer)
 	await get_tree().create_timer(2.8).timeout
-	var next := GameState.level_index + 1
-	if not GameState.test_mode and next < GameState.LEVELS.size():
-		GameState.start_level(next)
-	else:
+	# Test rooms (a map override) go back to the title; debug runs of the real last level still get the victory screen.
+	if GameState.test_mode and GameState.map_override != "":
 		get_tree().change_scene_to_file(GameState.MENU_SCENE)
+	elif GameState.test_mode and not GameState.is_last_level():
+		get_tree().change_scene_to_file(GameState.MENU_SCENE)
+	elif GameState.is_last_level():
+		get_tree().change_scene_to_file(GameState.VICTORY_SCENE)
+	else:
+		GameState.start_level(GameState.level_index + 1)
 
 
 ## The cage lifts away and fades, and the puppy hops for joy.

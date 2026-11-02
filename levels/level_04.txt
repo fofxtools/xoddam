@@ -8,7 +8,7 @@
 
                                                                                 cccc
                                                                                 ====
-                    ?              cc                                     cccc        cccc  c                               ccccc                                 ?
+                    ?              cc                                     cccc        cccc  c                         ?     ccccc
                                   c  c   ccccc                            ====        ==== c c                              #####
        cccc                 f cccc       #####                     cccc           f         =    cccc      cccc       cccc #######     ccc     ccc    f     cccc        cccc cccc    cccc        ccc
   S         w           w               #######     r     w 1   t           u           u      2        B           D     #########   r   w       h       t                 +     3           C      G

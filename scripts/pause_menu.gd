@@ -1,9 +1,9 @@
 extends CanvasLayer
-## Pause menu: Resume, Save, Load, Restart level, Exit to title.
+## Pause menu: Resume, Save, Load, Restart level, Help, Sound on/off, Exit to title.
 ## Opened by the "pause" action (Escape key or the on-screen pause button); the same action closes it.
 
 const HelpPanel := preload("res://scripts/help_panel.gd")
-const BUTTON_SIZE := Vector2(640, 110)
+const BUTTON_SIZE := Vector2(640, 100)
 const FONT_SIZE := 64
 
 var enabled := true
@@ -14,6 +14,7 @@ var _resume: Button
 var _save: Button
 var _load: Button
 var _help: Control
+var _sound: Button
 
 
 func _ready() -> void:
@@ -34,7 +35,7 @@ func _ready() -> void:
 	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_panel.add_child(center)
 	var box := VBoxContainer.new()
-	box.add_theme_constant_override("separation", 22)
+	box.add_theme_constant_override("separation", 18)
 	center.add_child(box)
 
 	_resume = _button(box, "Resume", func(): _set_open(false))
@@ -42,6 +43,9 @@ func _ready() -> void:
 	_load = _button(box, "Load", _on_load)
 	_button(box, "Restart level", _on_restart)
 	_button(box, "Help", func(): _help.open())
+	_sound = _button(box, Audio.sound_label(), func():
+		Audio.toggle_sound()
+		_sound.text = Audio.sound_label())
 	_button(box, "Exit to title", _on_exit)
 
 	_help = HelpPanel.new()
@@ -53,6 +57,7 @@ func _button(parent: Control, text: String, callback: Callable) -> Button:
 	b.text = text
 	b.custom_minimum_size = BUTTON_SIZE
 	b.add_theme_font_size_override("font_size", FONT_SIZE)
+	b.pressed.connect(func(): Audio.play_sfx("click"))
 	b.pressed.connect(callback)
 	parent.add_child(b)
 	return b
@@ -76,6 +81,7 @@ func _set_open(open: bool) -> void:
 	if open:
 		_load.disabled = not GameState.has_save()
 		_save.text = "Save"
+		_sound.text = Audio.sound_label()
 		_resume.grab_focus()
 
 

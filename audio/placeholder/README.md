@@ -9,4 +9,12 @@ Replace with final audio in phase 5.
 
 Sound effects, two sets to compare (`sfx/kenney/` and `sfx/generated/`; same names in each):
 - sfx/kenney/ - Kenney (CC0): "63 Digital sound effects" https://opengameart.org/content/63-digital-sound-effects-lasers-phasers-space-etc and "Interface Sounds" https://opengameart.org/content/interface-sounds
+- sfx/opengameart/roar.wav - "CC0 Deep Monster Roar" by trazzz123 (CC0), https://opengameart.org/content/cc0-deep-monster-roar - trimmed to about 2.1 s (silence removed from the start, fade-out added). Used for the T-Rex roar.
 - sfx/generated/ - made by tools/gen_sfx.py (stdlib Python, no external assets). Re-run to regenerate.
+
+## How it is wired
+
+`scripts/audio.gd` (the `Audio` autoload) plays everything. Which file a game event uses is the small `SFX_FILES`
+table at its top, so a sound is changed by editing one line. `SFX_SETS` lists the sound sets in priority order
+(the first set with the file wins). `MENU_MUSIC` and `LEVEL_MUSIC` choose the tracks. The sound on/off switch is on
+the title screen and in the pause menu; the choice is remembered in `user://settings.cfg`.

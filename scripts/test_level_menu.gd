@@ -40,6 +40,12 @@ func _ready() -> void:
 	center.add_child(list)
 
 	# The real levels worth jumping to (level 1 is just Play), above the one-room test levels.
+	var victory_button := _button("Victory screen")
+	victory_button.pressed.connect(func():
+		GameState.test_mode = true  # so showing it does not reset your progress
+		get_tree().change_scene_to_file(GameState.VICTORY_SCENE))
+	list.add_child(victory_button)
+
 	for i in range(GameState.LEVELS.size() - 1, 0, -1):
 		var level_button := _button("Level %d" % (i + 1))
 		level_button.pressed.connect(func(): GameState.start_debug_level(i))
@@ -72,6 +78,7 @@ func _button(text: String) -> Button:
 	b.text = text
 	b.custom_minimum_size = BUTTON_SIZE
 	b.add_theme_font_size_override("font_size", 60)
+	b.pressed.connect(func(): Audio.play_sfx("click"))
 	return b
 
 
