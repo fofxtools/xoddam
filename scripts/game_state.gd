@@ -27,6 +27,8 @@ var levels_completed := 0
 var test_mode := false
 ## When set, the level scene loads this map instead of its own (kept across restarts of the level).
 var map_override := ""
+## Debug only: which test background (see scripts/backdrop.gd) to show behind the level, or "".
+var backdrop_test := ""
 
 var _last_slow_log_ms := -SLOW_FRAME_LOG_INTERVAL_MS
 
@@ -124,9 +126,10 @@ func continue_game() -> void:
 
 ## Debug only: jump straight into one of the real levels. Like a test level: no lives lost, nothing saved,
 ## and it ends at the title screen instead of advancing.
-func start_debug_level(index: int) -> void:
+func start_debug_level(index: int, backdrop: String = "") -> void:
 	test_mode = true
 	map_override = ""
+	backdrop_test = backdrop
 	lives = START_LIVES
 	level_index = index
 	begin_level()
@@ -138,6 +141,7 @@ func start_debug_level(index: int) -> void:
 func start_test_level(map_path: String) -> void:
 	test_mode = true
 	map_override = map_path
+	backdrop_test = ""
 	lives = START_LIVES
 	level_index = 0
 	begin_level()
@@ -148,6 +152,7 @@ func start_test_level(map_path: String) -> void:
 func start_level(index: int) -> void:
 	test_mode = false
 	map_override = ""
+	backdrop_test = ""
 	level_index = index
 	begin_level()
 	save_game()

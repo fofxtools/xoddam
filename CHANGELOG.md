@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.3] - 2026-11-02
+
+Still boxes for characters, but the levels now have real backgrounds and the art direction is locked.
+
+### Added
+- **Level backgrounds:** layered, scrolling scenery for each level: 1 outdoors, 2 ruined city, 3 mothership exterior (the ship drifts in and sits above the puppy cage at the end), 4 alien mothership interior. Placeholder concept art for now. Debug Level Select can show any background on level 3.
+- **Art picks:** the chosen concept art for characters, enemies, puppies, items, UI and title is in `art/concepts/final/`, with transparent cut-outs in `art/sprites/`. Decisions are in `docs/art-bible.md`; the background recipe is in `docs/concept-art-plan.md`.
+- **Art tools:** `tools/layer_tool.py` (background strips) and `tools/cutout.py` (sprite cut-outs).
+
+### Changed
+- **Armoured is now armored** (American spelling) in the scene, test room, code and docs.
+
 ## [0.1.2] - 2026-11-01
 
 Still plain coloured boxes, but the game now has sound, a story intro and an ending.
@@ -24,7 +36,7 @@ Still plain coloured boxes. The story is now in: a boy who turns into a T-Rex an
 - **Item block** (`?`): bump it from below and the T-Rex egg pops out. Replaces the loose egg in the levels.
 - **Heart pickup:** restores full health. It waits if you are already at full health.
 - **Boss gate:** a tall gate that stays shut until the boss before it is defeated (level 4).
-- **More enemies:** chaser, urchin (spikes go out and in), swooper, hopper, armoured, shell, turret and popper. Levels use walkers, flyers, heavies, urchins, chasers and turrets; the rest are in the test rooms.
+- **More enemies:** chaser, urchin (spikes go out and in), swooper, hopper, armored, shell, turret and popper. Levels use walkers, flyers, heavies, urchins, chasers and turrets; the rest are in the test rooms.
 - **Debug Level Select** (debug builds): jump to any level, or to a one-room test for each enemy type and the item block.
 - **Tests:** `tests/run_tests.gd` (about 20 seconds, see `tests/README.md`) checks the game rules, every enemy type and the level maps.
 

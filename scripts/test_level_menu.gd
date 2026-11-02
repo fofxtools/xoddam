@@ -46,6 +46,12 @@ func _ready() -> void:
 		get_tree().change_scene_to_file(GameState.VICTORY_SCENE))
 	list.add_child(victory_button)
 
+	# Try any background on level 3 (the real levels each use their own; see scripts/backdrop.gd).
+	for kind in ["outdoors", "city", "exterior", "interior"]:
+		var backdrop_button := _button("Backdrop: " + kind)
+		backdrop_button.pressed.connect(func(): GameState.start_debug_level(2, kind))
+		list.add_child(backdrop_button)
+
 	for i in range(GameState.LEVELS.size() - 1, 0, -1):
 		var level_button := _button("Level %d" % (i + 1))
 		level_button.pressed.connect(func(): GameState.start_debug_level(i))

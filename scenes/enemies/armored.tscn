@@ -8,11 +8,11 @@ size = Vector2(64, 56)
 [sub_resource type="RectangleShape2D" id="2"]
 size = Vector2(76, 60)
 
-[node name="Armoured" type="CharacterBody2D"]
+[node name="Armored" type="CharacterBody2D"]
 collision_layer = 4
 collision_mask = 1
 script = ExtResource("1")
-kind = "armoured"
+kind = "armored"
 speed = 80.0
 height = 60.0
 stompable = false

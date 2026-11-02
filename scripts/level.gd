@@ -10,6 +10,7 @@ const ItemBlockScene := preload("res://scenes/item_block.tscn")
 const HeartScene := preload("res://scenes/heart_pickup.tscn")
 const GateScene := preload("res://scenes/boss_gate.tscn")
 const PuppyArt := preload("res://scripts/puppy.gd")
+const Backdrop := preload("res://scripts/backdrop.gd")
 
 ## Map letter -> enemy scene.
 const ENEMIES := {
@@ -18,7 +19,7 @@ const ENEMIES := {
 	"s": preload("res://scenes/enemies/swooper.tscn"),
 	"j": preload("res://scenes/enemies/hopper.tscn"),
 	"r": preload("res://scenes/enemies/chaser.tscn"),
-	"a": preload("res://scenes/enemies/armoured.tscn"),
+	"a": preload("res://scenes/enemies/armored.tscn"),
 	"u": preload("res://scenes/enemies/urchin.tscn"),
 	"k": preload("res://scenes/enemies/shell.tscn"),
 	"t": preload("res://scenes/enemies/turret.tscn"),
@@ -77,6 +78,16 @@ func _ready() -> void:
 	move_child(world, 0)
 	_build(world)
 	_link_gates(world)
+
+	# Real levels get their own background; the one-room test levels stay plain; the debug menu can force one.
+	var backdrop_kind: String = GameState.backdrop_test
+	if backdrop_kind == "" and GameState.map_override == "":
+		var number := GameState.LEVELS.find(scene_file_path)
+		backdrop_kind = Backdrop.kind_for_level(number if number >= 0 else GameState.level_index)
+	if backdrop_kind != "":
+		var backdrop := Backdrop.new(backdrop_kind, level_size.x)
+		add_child(backdrop)
+		move_child(backdrop, 0)
 
 	add_child(Hud.new())
 	_pause_menu = PauseMenu.new()

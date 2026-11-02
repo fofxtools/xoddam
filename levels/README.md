@@ -34,7 +34,7 @@ The boy defeats any stompable enemy with one stomp. "T-Rex" says what happens wh
 | `s` | swooper | hovers, dives at you when you pass under, returns | kills | defeats it |
 | `j` | hopper | walker that hops now and then | kills | defeats it |
 | `r` | chaser | patrols, then rushes you when you get close | kills | defeats it |
-| `a` | armoured | spiky walker | hurts you | defeats it |
+| `a` | armored | spiky walker | hurts you | defeats it |
 | `u` | urchin | spiky walker whose spikes are out for 1.5 s, then in for 3 s | kills only while the spikes are in | defeats it |
 | `k` | shell | stomp it into a shell, touch the shell to kick it; sliding shells hurt you and defeat other enemies | see left | defeats it while walking |
 | `t` | turret | stands still, shoots slow shots at you | kills | defeats it |

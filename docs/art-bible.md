@@ -1,4 +1,4 @@
-# Xoddam — Art Bible (DRAFT, awaiting approval)
+# Xoddam — Art Bible
 
 Concept images: `art/concepts/`. Generated with genimg (flux-2-klein-9b-Q4_K_M).
 
@@ -39,3 +39,22 @@ Concept images: `art/concepts/`. Generated with genimg (flux-2-klein-9b-Q4_K_M).
 - T-Rex form: `trex_mean_s44.png` (no hair, bare clawed feet, slightly mean grin). Other round 2 candidates (`trex_mean_*`, `trex_mean_mane_*`) are rejected.
 - Hero + T-Rex link: no shared hair/shoes, so the transformation needs a visual bridge (effect, matching colour accent).
 - Owner/date: TBD.
+
+## Round 2 decisions (story: aliens invade and cage the puppies)
+
+All final picks are in `art/concepts/final/` (one file per thing, `manifest.json` has the source file, seed and prompt style).
+Round 1 enemy picks (purple blob, beetle) are retired.
+
+- **Enemies are all alien or robot,** one family around the green-man walker. Names: walker, flyer (drone), swooper, hopper, chaser, armored (American spelling), urchin, shell, turret, popper, heavy, boss, charger boss.
+- **Spike rule:** only enemies with spikes in the game rules may show spikes or horns: armored (always out), urchin and boss (retractable). Everything else is smooth. The picked `boss` and `charger_boss` images have horns; the horn-free versions are in `tmp/concepts/H_spike_states/` and must be used or the horns painted out when cutting the sprites. Spikes are separate pieces over a smooth body with empty sockets (`urchin_in` is the retracted body).
+- **Levels:** 1 outdoors, 2 ruined city, 3 mothership exterior, 4 mothership interior. Backgrounds are layered parallax strips (sky, far, mid, near, plus a set piece), built in `scripts/backdrop.gd`; recipe in `docs/concept-art-plan.md`.
+- **Touch buttons:** symbol only, no text. Blue glossy round buttons (left, right, jump, pause).
+- **Puppy art:** idle, scared, in cage, happy. The cage must match the puppy-in-cage picture (see `tmp/concepts/N_cages`).
+- **Hearts:** full heart is the picked cartoon heart; half and empty are made from it (`tmp/concepts/N_hearts`).
+- **Logo:** rendered by the image model ("Xoddam the Mighty", s11); real-font versions kept for comparison.
+
+## Sprites
+`art/sprites/` has transparent cut-outs of every picked character, item and prop (made by `tools/cutout.py`: flood fill from the edge, spikes on green keyed). Some keep a soft ground shadow to clean up. Touch buttons use one blue round button with one arrow rotated (left, right, up). The alien commander is dropped. Cage: `cage_empty` (s11) for the closed state and `cage_off` (powered down, same cage) for after the rescue.
+
+## Still open
+- Final powered-down cage and title backdrop picks, shadow cleanup, rotating the arrow onto a separate button base, the tile/ground and platform art for the four levels, and turning sprites into pose frames.

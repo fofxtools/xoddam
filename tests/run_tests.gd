@@ -13,7 +13,7 @@ const ENEMY_DIR := "res://scenes/enemies/"
 const LEGAL_MAP_CHARS := " #=^ceSG123wfsjraktphBCu?+D"
 const TESTS := [
 	"test_stompable_enemies_die_to_a_stomp",
-	"test_armoured_enemy_hurts_a_stomp",
+	"test_armored_enemy_hurts_a_stomp",
 	"test_urchin_stompable_only_with_spikes_in",
 	"test_side_hit_costs_a_heart",
 	"test_flyer_rising_into_a_standing_player_is_a_stomp",
@@ -28,6 +28,7 @@ const TESTS := [
 	"test_audio_is_wired",
 	"test_victory_screen",
 	"test_intro_screen",
+	"test_backdrop_presets_build",
 	"test_level_maps_are_valid",
 	"test_levels_load",
 ]
@@ -148,14 +149,14 @@ func test_stompable_enemies_die_to_a_stomp() -> bool:
 	return true
 
 
-func test_armoured_enemy_hurts_a_stomp() -> bool:
+func test_armored_enemy_hurts_a_stomp() -> bool:
 	await _make_world()
-	var e := _spawn_enemy("armoured", 600.0)
+	var e := _spawn_enemy("armored", 600.0)
 	await _frames(2)
 	_drop_onto(e)
 	await _frames(40)
-	check(not _defeated(e), "the armoured enemy survives a stomp")
-	check(gs.hearts == 2, "stomping the armoured enemy costs a heart")
+	check(not _defeated(e), "the armored enemy survives a stomp")
+	check(gs.hearts == 2, "stomping the armored enemy costs a heart")
 	return true
 
 
@@ -233,7 +234,7 @@ func test_flyer_rising_into_a_standing_player_is_a_stomp() -> bool:
 
 
 func test_trex_rules() -> bool:
-	for kind in ["walker", "flyer", "armoured"]:
+	for kind in ["walker", "flyer", "armored"]:
 		await _make_world()
 		player.become_trex()
 		var e := _spawn_enemy(kind, 600.0)
@@ -548,6 +549,18 @@ func test_intro_screen() -> bool:
 	return true
 
 
+func test_backdrop_presets_build() -> bool:
+	var script: GDScript = load("res://scripts/backdrop.gd")
+	for kind in script.PRESETS:
+		var backdrop = script.new(kind, 9600.0)
+		root.add_child(backdrop)
+		await process_frame
+		check(backdrop.get_child_count() == script.PRESETS[kind].size(), "the %s test backdrop builds all its layers" % kind)
+		backdrop.queue_free()
+		await process_frame
+	return true
+
+
 func test_level_maps_are_valid() -> bool:
 	var paths: Array[String] = []
 	for dir in ["res://levels", "res://levels/test"]:
@@ -589,6 +602,7 @@ func test_levels_load() -> bool:
 		await process_frame
 		check(level.spawn != Vector2.ZERO, "%s builds with a player start" % scene_path)
 		check(level.level_size.x > 0.0, "%s has a non-empty map" % scene_path)
+		check(level.has_node("Backdrop"), "%s has its background" % scene_path)
 		level.queue_free()
 		await process_frame
 	return true

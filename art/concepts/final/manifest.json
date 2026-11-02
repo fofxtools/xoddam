@@ -1,0 +1,182 @@
+{
+ "walker": {
+  "source": "A0_walker/green_man_described_s11.png",
+  "note": "green man, described prompt"
+ },
+ "chaser": {
+  "source": "A_enemies/chaser_robot_s22.png",
+  "note": ""
+ },
+ "swooper": {
+  "source": "A_enemies/swooper_robot_s22.png",
+  "note": "not in a real level yet"
+ },
+ "turret": {
+  "source": "A_enemies/turret_robot_s22.png",
+  "note": ""
+ },
+ "urchin_out": {
+  "source": "A_enemies/urchin_robot_s44.png",
+  "note": "spikes out"
+ },
+ "urchin_in": {
+  "source": "H_spike_states/urchin_in_robot_s44.png",
+  "note": "spikes retracted (your pick)"
+ },
+ "flyer": {
+  "source": "H_flyer_drones/flyer_drone1_s22.png",
+  "note": "drone"
+ },
+ "hopper": {
+  "source": "A_enemies/hopper_alien_s11.png",
+  "note": "test room only"
+ },
+ "armored": {
+  "source": "A_enemies/armoured_alien_s11.png",
+  "note": "spikes always out; test room only"
+ },
+ "shell": {
+  "source": "A_enemies/shell_robot_s11.png",
+  "note": "test room only"
+ },
+ "popper": {
+  "source": "A_enemies/popper_robot_s11.png",
+  "note": "test room only"
+ },
+ "heavy": {
+  "source": "A_enemies/heavy_robot_s11.png",
+  "note": ""
+ },
+ "boss": {
+  "source": "A_enemies/boss_robot_s11.png",
+  "note": "spiky boss; has horns, see art-bible rule"
+ },
+ "charger_boss": {
+  "source": "H_spike_states/charger_boss_robot_s11.png",
+  "note": "horn-free version, since only spiky enemies get horns"
+ },
+ "puppy_idle": {
+  "source": "B_puppies/puppy_idle_plain_s22.png",
+  "note": ""
+ },
+ "puppy_scared": {
+  "source": "B_puppies/puppy_scared_plain_s44.png",
+  "note": ""
+ },
+ "puppy_in_cage": {
+  "source": "B_puppies/puppy_in_cage_plain_s22.png",
+  "note": ""
+ },
+ "puppy_happy": {
+  "source": "B_puppies/puppy_happy_plain_s44.png",
+  "note": ""
+ },
+ "coin": {
+  "source": "C_objects/coin_a_s11.png",
+  "note": ""
+ },
+ "egg": {
+  "source": "C_objects/egg_a_s11.png",
+  "note": ""
+ },
+ "heart_full": {
+  "source": "H_items/heart_cartoon_s33.png",
+  "note": ""
+ },
+ "block_egg": {
+  "source": "H_items/block_egg_stone_s33.png",
+  "note": ""
+ },
+ "block_empty": {
+  "source": "H_items/block_empty_plain_s33.png",
+  "note": ""
+ },
+ "boss_gate": {
+  "source": "C_objects/boss_gate_b_s33.png",
+  "note": ""
+ },
+ "saucer": {
+  "source": "D_invasion/saucer_menace_s22.png",
+  "note": ""
+ },
+ "laser": {
+  "source": "D_invasion/laser_beam_s22.png",
+  "note": ""
+ },
+ "intro_scene": {
+  "source": "D_invasion/intro_scene_v2_s22.png",
+  "note": ""
+ },
+ "transform": {
+  "source": "G_transform/transform_plain_s22.png",
+  "note": ""
+ },
+ "logo_full": {
+  "source": "F_ui/logo_full_s11.png",
+  "note": ""
+ },
+ "logo_short": {
+  "source": "F_ui/logo_short_s44.png",
+  "note": ""
+ },
+ "logo_mascot": {
+  "source": "F_ui/logo_mascot_s33.png",
+  "note": ""
+ },
+ "lives_icon": {
+  "source": "F_ui/lives_icon_plain_s33.png",
+  "note": ""
+ },
+ "app_icon_boy_trex": {
+  "source": "F_ui/app_icon_boy_trex_s22.png",
+  "note": ""
+ },
+ "app_icon_trex": {
+  "source": "F_ui/app_icon_trex_s11.png",
+  "note": ""
+ },
+ "title_backdrop_hills": {
+  "source": "F_ui/title_backdrop_hills_s33.png",
+  "note": ""
+ },
+ "title_backdrop_sunset": {
+  "source": "F_ui/title_backdrop_sunset_s44.png",
+  "note": ""
+ },
+ "cage_empty": {
+  "source": "N_cages/cage_empty_s11.png",
+  "note": ""
+ },
+ "cage_off": {
+  "source": "R_cage/cage_slot_s44.png",
+  "note": "your pick"
+ },
+ "heart_half": {
+  "source": "N_hearts/heart_half_a_s33.png",
+  "note": ""
+ },
+ "heart_empty": {
+  "source": "N_hearts/heart_empty_a_s33.png",
+  "note": ""
+ },
+ "spikes_row3": {
+  "source": "N_spikes/spikes_row3_s33.png",
+  "note": "on green"
+ },
+ "spikes_row4": {
+  "source": "N_spikes/spikes_row4_s44.png",
+  "note": "on green"
+ },
+ "spikes_tech": {
+  "source": "N_spikes/spikes_tech_s22.png",
+  "note": "on green"
+ },
+ "title_backdrop": {
+  "source": "O_title/hills_ufo_c_s11.png",
+  "note": "your pick"
+ },
+ "button_arrow": {
+  "source": "M_buttons/left_blue_s44.png",
+  "note": "one arrow, rotate for right and up"
+ }
+}

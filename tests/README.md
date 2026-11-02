@@ -14,7 +14,7 @@ It takes about 20 seconds. The last line reads `Results: N checks passed, M fail
 ## What is covered (`run_tests.gd`)
 
 - **Enemy rules,** using the real player and enemy scenes on a small floor with the real physics:
-  stomps defeat the stompable kinds, the armoured enemy and spiky urchin hurt a stomp, a side hit costs a
+  stomps defeat the stompable kinds, the armored enemy and spiky urchin hurt a stomp, a side hit costs a
   heart, the T-Rex rules for walkers, flyers, heavies and the boss, and the boss needing three stomps.
 - **Game rules:** every `COINS_PER_HEAL` coins refilling the hearts, game over, test mode never costing a life.
 - **Level maps** (`levels/*.txt` and `levels/test/*.txt`): only legal characters, 17 rows, one start, one
