@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.1.4] - 2026-11-02
+
+The characters, enemies and props now use real art instead of coloured boxes. Ground and platforms are still plain.
+
+### Added
+- **Player art:** the boy and the T-Rex have idle, jump, fall and a 4-picture run cycle, so their legs move. The run follows distance travelled (slower running, slower legs). A lean, a landing squash and a star-burst cloud when the boy and T-Rex swap.
+- **Boy death animation:** he leaps up in surprise, tumbles and drops away (a funny "oops", not scary).
+- **Enemy art:** all 13 enemies have their pictures. They face the way they move; walkers waddle and flyers rock. The chaser, heavy and both bosses have walk or run cycles.
+- **Prop art:** coin, egg, item blocks, spikes, boss gate, caged puppy, HUD hearts, lives and coin icons, and the touch buttons (one round base, one arrow turned for each direction). After a rescue the cage powers down and the freed puppy hops out. The intro and victory screens use the real puppies.
+- **Art tools** (in `tools/`): `make_player_sprites.py`, `make_enemy_sprites.py`, `make_static_sprites.py` and `openai_edit.py` (the run frames were made with the OpenAI image model from the character plus a stick-figure pose guide, since Flux ignored the guide).
+
+### Changed
+- **Bigger sizes:** the T-Rex is 190 px tall (1.8x the boy), the heavy 135 and the bosses 210. Hitboxes follow the bodies; tails and snouts stick out. The T-Rex still fits under the egg blocks.
+- **Chaser** stands still until you come close, then runs at you.
+- **Soft top on enemies:** grazing the top 40% (at most 90 px) of a stompable enemy never hurts, even on the way up. Jumping at a tall boss from close up used to clip its head corner and hurt; now you land on it and stomp.
+- **Spikes sit on the body:** the urchin's and spiky boss's spikes follow the outline of the picture and grow from behind the armor. The spiky boss is a smooth body.
+- **Puppy ending:** every level ends with the puppy on flat ground and 9 tiles of ground after it, so the jump button never covers the cage.
+- **Coins** are smaller. **Turret** barrel is level. Puppy and egg pictures have no grey ground shadow.
+
 ## [0.1.3] - 2026-11-02
 
 Still boxes for characters, but the levels now have real backgrounds and the art direction is locked.

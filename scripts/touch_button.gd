@@ -4,6 +4,10 @@ extends TouchScreenButton
 
 enum Kind { LEFT, RIGHT, JUMP, PAUSE }
 
+const BASE := preload("res://art/sprites/game/button_base.png")
+const ARROW := preload("res://art/sprites/game/symbol_arrow.png")
+const PAUSE_SYMBOL := preload("res://art/sprites/game/symbol_pause.png")
+
 var kind := Kind.LEFT
 var radius := 85.0
 
@@ -26,18 +30,16 @@ func _process(_delta: float) -> void:
 
 func _draw() -> void:
 	var is_down := Input.is_action_pressed(action)
-	var base := Color(1, 1, 1, 0.75 if is_down else 0.32)
-	var ink := Color(0.1, 0.12, 0.2, 0.9 if is_down else 0.6)
-	draw_circle(Vector2.ZERO, radius, base)
-	draw_arc(Vector2.ZERO, radius, 0.0, TAU, 48, ink, 6.0)
-	var s := radius * 0.42
+	var shade := Color(1, 1, 1, 1.0 if is_down else 0.62)
+	var rect := Rect2(Vector2(-radius, -radius), Vector2(radius, radius) * 2.0)
+	draw_texture_rect(BASE, rect, false, shade)
+	# One arrow picture, turned for each direction (it points left as drawn).
+	var turn := 0.0
 	match kind:
-		Kind.LEFT:
-			draw_colored_polygon(PackedVector2Array([Vector2(-s, 0), Vector2(s * 0.7, -s), Vector2(s * 0.7, s)]), ink)
 		Kind.RIGHT:
-			draw_colored_polygon(PackedVector2Array([Vector2(s, 0), Vector2(-s * 0.7, -s), Vector2(-s * 0.7, s)]), ink)
+			turn = PI
 		Kind.JUMP:
-			draw_colored_polygon(PackedVector2Array([Vector2(0, -s), Vector2(s, s * 0.7), Vector2(-s, s * 0.7)]), ink)
-		Kind.PAUSE:
-			draw_rect(Rect2(-s * 0.7, -s * 0.8, s * 0.55, s * 1.6), ink)
-			draw_rect(Rect2(s * 0.15, -s * 0.8, s * 0.55, s * 1.6), ink)
+			turn = PI / 2.0
+	draw_set_transform(Vector2.ZERO, turn, Vector2.ONE)
+	draw_texture_rect(PAUSE_SYMBOL if kind == Kind.PAUSE else ARROW, rect, false, shade)
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)

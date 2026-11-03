@@ -3,16 +3,11 @@ extends StaticBody2D
 ## Afterwards it stays as an ordinary used block. The player calls hit_from_below() (see player.gd).
 
 const EggScene := preload("res://scenes/egg.tscn")
-const COL_RIM_FRESH := Color("#b8801a")
-const COL_FACE_FRESH := Color("#f7c531")
-const COL_RIM_USED := Color("#6b5636")
-const COL_FACE_USED := Color("#9a7b4f")
+const USED_ART := preload("res://art/sprites/game/block_used.png")
 
 var used := false
 
-@onready var _rim: ColorRect = $Rim
-@onready var _face: ColorRect = $Rim/Face
-@onready var _mark: Label = $Rim/Face/Mark
+@onready var _art: Sprite2D = $Art
 
 
 func hit_from_below(by: Node2D) -> void:
@@ -20,9 +15,7 @@ func hit_from_below(by: Node2D) -> void:
 		return
 	used = true
 	Audio.play_sfx("block")
-	_rim.color = COL_RIM_USED
-	_face.color = COL_FACE_USED
-	_mark.visible = false
+	_art.texture = USED_ART
 	var egg: CharacterBody2D = EggScene.instantiate()
 	egg.position = position + Vector2(0.0, -64.0)  # same parent as the block, so same coordinates
 	get_parent().add_child(egg)
@@ -31,5 +24,5 @@ func hit_from_below(by: Node2D) -> void:
 	egg.launch(1.0 if absf(away) < 0.1 else away)
 	GameState.log_event("item_block_hit", "pos=%s" % global_position.round())
 	var bump := create_tween()
-	bump.tween_property(_rim, "position:y", -12.0, 0.08)
-	bump.tween_property(_rim, "position:y", 0.0, 0.1)
+	bump.tween_property(_art, "position:y", -12.0, 0.08)
+	bump.tween_property(_art, "position:y", 0.0, 0.1)

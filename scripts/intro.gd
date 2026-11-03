@@ -138,6 +138,7 @@ func _ellipse(center: Vector2, radius: Vector2, steps: int) -> PackedVector2Arra
 ## A puppy that shivers and hops in fright.
 func _add_scared_puppy(pos: Vector2, delay: float) -> void:
 	var puppy := PuppyArt.new()
+	puppy.pose = "puppy_scared"
 	puppy.position = pos
 	puppy.scale = Vector2(1.6, 1.6)
 	add_child(puppy)

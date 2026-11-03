@@ -68,5 +68,5 @@ func _enter_shell() -> void:
 	_state = State.IDLE
 	_kick_immunity = KICK_IMMUNITY
 	_body.scale.y = SHELL_SQUASH
-	_body.color = _body.color.darkened(0.35)
+	_body.modulate = Color(0.65, 0.65, 0.7)
 	GameState.log_event("shell_entered", "pos=%s" % global_position.round())

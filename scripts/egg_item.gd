@@ -7,19 +7,15 @@ const FRICTION := 500.0
 ## Sideways speed must carry the egg clear of the block (half a block plus the egg's radius, about 56 px)
 ## before it falls back to the block's top height; 480 up and gravity 2400 give about 0.4 s of air time.
 const POP_SPEED := Vector2(240.0, -480.0)
-const COL_RIM := Color("#7a4a0c")
-const COL_EGG := Color("#f6e7b0")
-const COL_SPOT := Color("#e0703a")
 
 var _taken := false
 
 
 func _ready() -> void:
-	_add_ellipse(Vector2.ZERO, 24.0, 30.0, COL_RIM)
-	_add_ellipse(Vector2.ZERO, 21.0, 27.0, COL_EGG)
-	_add_ellipse(Vector2(-7, -8), 6.0, 6.0, COL_SPOT)
-	_add_ellipse(Vector2(8, 4), 7.0, 7.0, COL_SPOT)
-	_add_ellipse(Vector2(-6, 14), 5.0, 5.0, COL_SPOT)
+	var art := Sprite2D.new()
+	art.texture = load("res://art/sprites/game/egg.png")
+	art.scale = Vector2(0.5, 0.5)
+	add_child(art)
 	$Pickup.body_entered.connect(_on_pickup_entered)
 
 
@@ -44,13 +40,3 @@ func _on_pickup_entered(body: Node2D) -> void:
 	body.become_trex()
 	queue_free()
 
-
-func _add_ellipse(center: Vector2, rx: float, ry: float, color: Color) -> void:
-	var poly := Polygon2D.new()
-	var pts := PackedVector2Array()
-	for i in 20:
-		var t := TAU * i / 20.0
-		pts.append(center + Vector2(cos(t) * rx, sin(t) * ry))
-	poly.polygon = pts
-	poly.color = color
-	add_child(poly)

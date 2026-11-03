@@ -3,6 +3,9 @@ extends Control
 
 enum Kind { LIFE, COIN }
 
+const COIN_ART := preload("res://art/sprites/game/coin.png")
+const LIFE_ART := preload("res://art/sprites/game/lives.png")
+
 var kind := Kind.COIN
 
 
@@ -12,13 +15,4 @@ func _ready() -> void:
 
 
 func _draw() -> void:
-	var c := size / 2.0
-	match kind:
-		Kind.COIN:
-			draw_circle(c, 34.0, Color("#f7c531"))
-			draw_arc(c, 34.0, 0.0, TAU, 40, Color("#7a4a0c"), 5.0)
-			draw_circle(c, 17.0, Color("#ffe27a"))
-		Kind.LIFE:
-			draw_rect(Rect2(c - Vector2(30, 34), Vector2(60, 68)), Color(0.27, 0.58, 0.85))
-			draw_rect(Rect2(c - Vector2(30, 34), Vector2(60, 68)), Color("#173a5c"), false, 5.0)
-			draw_rect(Rect2(c + Vector2(6, -14), Vector2(12, 16)), Color.WHITE)
+	draw_texture_rect(COIN_ART if kind == Kind.COIN else LIFE_ART, Rect2(Vector2.ZERO, size), false)

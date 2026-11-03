@@ -5,12 +5,12 @@ import numpy as np
 from collections import deque
 from PIL import Image, ImageFilter
 
-def cutout(img, tol=28, green=False):
+def cutout(img, tol=28, green=False, green_gap=70):
     a = np.asarray(img.convert("RGB")).astype(np.int16)
     h, w, _ = a.shape
     if green:
         dist = np.maximum(np.maximum(a[..., 0], a[..., 2]) - a[..., 1] + 160, 0)  # not used
-        bg = (a[..., 1] - np.maximum(a[..., 0], a[..., 2])) > 70
+        bg = (a[..., 1] - np.maximum(a[..., 0], a[..., 2])) > green_gap  # raise for green subjects
         mask_bg = bg
     else:
         border = np.concatenate([a[0], a[-1], a[:, 0], a[:, -1]])
@@ -40,3 +40,39 @@ if __name__ == "__main__":
     p = argparse.ArgumentParser(); p.add_argument("src"); p.add_argument("dst"); p.add_argument("--key"); p.add_argument("--tol", type=int, default=28)
     a = p.parse_args()
     r = cutout(Image.open(a.src), a.tol, a.key == "green"); r.save(a.dst); print(a.dst, r.size)
+
+
+def cutout_grey(img, sat_max=0.06, v_min=115, v_max=250):
+    """Cut out a sprite drawn on a plain light-grey background, including its ground shadow and the gaps between legs.
+    Flood-fills from the border over every unsaturated mid-to-light grey pixel (background and shadow alike); the sprite's
+    dark outline stops the fill, so grey parts inside the outline are kept."""
+    a = np.asarray(img.convert("RGB")).astype(np.int16)
+    h, w, _ = a.shape
+    mx, mn = a.max(axis=2), a.min(axis=2)
+    sat = (mx - mn) / np.maximum(mx, 1)
+    like = (sat < sat_max) & (mx >= v_min) & (mx <= v_max)
+    seen = np.zeros((h, w), bool)
+    q = deque()
+    for x in range(w):
+        for y in (0, h - 1):
+            if like[y, x] and not seen[y, x]:
+                seen[y, x] = True
+                q.append((y, x))
+    for y in range(h):
+        for x in (0, w - 1):
+            if like[y, x] and not seen[y, x]:
+                seen[y, x] = True
+                q.append((y, x))
+    while q:
+        y, x = q.popleft()
+        for dy, dx in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            ny, nx = y + dy, x + dx
+            if 0 <= ny < h and 0 <= nx < w and like[ny, nx] and not seen[ny, nx]:
+                seen[ny, nx] = True
+                q.append((ny, nx))
+    alpha = Image.fromarray(((~seen) * 255).astype(np.uint8))
+    alpha = alpha.filter(ImageFilter.MinFilter(3)).filter(ImageFilter.GaussianBlur(0.8))
+    out = img.convert("RGBA")
+    out.putalpha(alpha)
+    bbox = alpha.point(lambda v: 255 if v > 40 else 0).getbbox()
+    return out.crop(bbox) if bbox else out

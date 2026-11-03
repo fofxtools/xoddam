@@ -6,9 +6,16 @@ signal died
 
 const TILE := 64.0
 const BOY_SIZE := Vector2(64, 96)
-const REX_SIZE := Vector2(110, 128)
-const BOY_COLOR := Color(0.27, 0.58, 0.85)
-const REX_COLOR := Color(0.35, 0.7, 0.3)
+## The hitbox follows the T-Rex's body (the tail tip and snout poke out). 176 px tall still fits under the egg
+## blocks, which leave 3 tiles (192 px).
+const REX_SIZE := Vector2(160, 176)
+const ART_DIR := "res://art/sprites/player/"
+## The run cycle has 4 pictures; the next one shows after the player has travelled this far, so the feet keep
+## up with the ground (slower running means slower legs) and standing still shows no walking.
+const RUN_FRAMES := 4
+const RUN_STRIDE := 62.0
+const REX_RUN_STRIDE := 84.0
+const SQUASH_RECOVER := 12.0
 
 @export var run_speed := 520.0
 @export var ground_accel := 6500.0
@@ -35,9 +42,16 @@ var _buffer := 0.0
 var _gravity := 0.0
 var _jump_velocity := 0.0
 var _facing := 1.0
-var _body_w := 64.0
+var _textures := {}
+var _run_frames := {}  # form -> whether its run pictures exist (checked once)
+var _pose := ""
+var _was_on_floor := true
+var _squash := Vector2.ONE
+var _run_dist := 0.0
+var _breath := 0.0
 
-@onready var body: ColorRect = $Body
+@onready var body: Node2D = $Body
+@onready var art: Sprite2D = $Body/Art
 
 
 func _ready() -> void:
@@ -46,6 +60,7 @@ func _ready() -> void:
 	_jump_velocity = -2.0 * jump_height / time_to_apex
 	($Collision as CollisionShape2D).shape = ($Collision as CollisionShape2D).shape.duplicate()
 	apply_form()
+	_was_on_floor = is_on_floor()
 
 
 func is_trex() -> bool:
@@ -54,20 +69,77 @@ func is_trex() -> bool:
 
 func apply_form() -> void:
 	var size := REX_SIZE if GameState.is_trex else BOY_SIZE
-	_body_w = size.x
-	body.offset_left = -size.x / 2.0
-	body.offset_right = size.x / 2.0
-	body.offset_top = -size.y
-	body.offset_bottom = 0.0
-	body.color = REX_COLOR if GameState.is_trex else BOY_COLOR
 	var col := $Collision as CollisionShape2D
 	(col.shape as RectangleShape2D).size = Vector2(size.x - 10.0, size.y - 4.0)
 	col.position = Vector2(0.0, -size.y / 2.0)
-	_update_eye()
+	_pose = ""
+	_show_pose(_wanted_pose())
 
 
-func _update_eye() -> void:
-	$Body/Eye.position = Vector2(_body_w - 24.0 if _facing > 0.0 else 12.0, 20.0)
+func _wanted_pose() -> String:
+	var form := "rex" if GameState.is_trex else "boy"
+	if not is_on_floor():
+		if GameState.is_trex:
+			return form + "_air"
+		return form + ("_jump" if velocity.y < 0.0 else "_fall")
+	if absf(velocity.x) > 40.0 and _has_run_frames(form):
+		var stride := REX_RUN_STRIDE if GameState.is_trex else RUN_STRIDE
+		return "%s_run%d" % [form, int(_run_dist / stride) % RUN_FRAMES + 1]
+	return form + "_idle"
+
+
+func _has_run_frames(form: String) -> bool:
+	if not _run_frames.has(form):
+		_run_frames[form] = ResourceLoader.exists(ART_DIR + form + "_run1.png")
+	return _run_frames[form]
+
+
+## Swap the picture (cached) and stand it on the feet: the sprite's bottom centre sits on the player's origin.
+func _show_pose(pose: String) -> void:
+	if pose == _pose:
+		return
+	_pose = pose
+	if not _textures.has(pose):
+		_textures[pose] = load(ART_DIR + pose + ".png")
+	var tex: Texture2D = _textures[pose]
+	art.texture = tex
+	art.centered = false
+	art.offset = Vector2(-tex.get_width() / 2.0, -tex.get_height())
+
+
+## A star-burst cloud where the boy and the T-Rex swap, so the change reads as magic and not a pop.
+func _poof() -> void:
+	var cloud := Sprite2D.new()
+	cloud.texture = load(ART_DIR + "poof.png")
+	cloud.global_position = global_position + Vector2(0.0, -56.0)
+	cloud.scale = Vector2(0.12, 0.12)
+	cloud.z_index = 20
+	get_parent().add_child(cloud)
+	var t := cloud.create_tween().set_parallel(true)
+	t.tween_property(cloud, "scale", Vector2(0.36, 0.36), 0.35).set_ease(Tween.EASE_OUT)
+	t.tween_property(cloud, "modulate:a", 0.0, 0.35).set_delay(0.1)
+	t.chain().tween_callback(cloud.queue_free)
+
+
+## Run bounce, landing squash and a little breathing, all from code on top of the pose pictures.
+func _animate(delta: float) -> void:
+	_show_pose(_wanted_pose())
+	var on_floor := is_on_floor()
+	if on_floor and not _was_on_floor:
+		_squash = Vector2(1.18, 0.82)
+	elif not on_floor and _was_on_floor and velocity.y < 0.0:
+		_squash = Vector2(0.85, 1.15)
+	_was_on_floor = on_floor
+	_squash = _squash.lerp(Vector2.ONE, clampf(SQUASH_RECOVER * delta, 0.0, 1.0))
+	if on_floor and absf(velocity.x) > 40.0:
+		_run_dist += absf(velocity.x) * delta
+	else:
+		_breath += delta * 2.5
+		if on_floor:
+			_squash.y *= 1.0 + sin(_breath) * 0.012
+	var lean := clampf(velocity.x / run_speed, -1.0, 1.0) * 0.04 if on_floor else 0.0
+	body.rotation = lean
+	body.scale = Vector2(_facing * _squash.x, _squash.y)
 
 
 func _physics_process(delta: float) -> void:
@@ -104,14 +176,13 @@ func _physics_process(delta: float) -> void:
 	if dir != 0.0:
 		var accel := ground_accel if on_floor else air_accel
 		velocity.x = move_toward(velocity.x, dir * run_speed, accel * delta)
-		if signf(dir) != _facing:
-			_facing = signf(dir)
-			_update_eye()
+		_facing = signf(dir)
 	else:
 		var friction := ground_friction if on_floor else air_accel * 0.5
 		velocity.x = move_toward(velocity.x, 0.0, friction * delta)
 
 	move_and_slide()
+	_animate(delta)
 
 	# Head-bump: hitting the underside of something that reacts (an item block) triggers it.
 	for i in get_slide_collision_count():
@@ -131,6 +202,7 @@ func hurt(source: String = "unknown") -> void:
 	if GameState.is_trex:
 		GameState.is_trex = false
 		apply_form()
+		_poof()
 		invincible = invincible_time
 		GameState.changed.emit()
 		GameState.log_event("trex_lost", "source=%s pos=%s" % [source, global_position.round()])
@@ -169,6 +241,7 @@ func become_trex() -> void:
 		return
 	GameState.is_trex = true
 	apply_form()
+	_poof()
 	GameState.changed.emit()
 	Audio.play_sfx("egg")
 	GameState.log_event("trex_gained", "pos=%s" % global_position.round())
@@ -182,8 +255,22 @@ func die(cause: String = "unknown") -> void:
 		Audio.play_sfx("hurt")
 	GameState.log_event("player_died", "cause=%s pos=%s" % [cause, global_position.round()])
 	velocity = Vector2.ZERO
-	body.visible = false
+	_play_death()
 	died.emit()
+
+
+## The boy leaps up in surprise, tumbles and drops out of sight (a funny oops, not a scary one).
+func _play_death() -> void:
+	body.visible = true
+	_pose = ""
+	_show_pose("boy_dead")
+	body.scale = Vector2(_facing, 1.0)
+	body.rotation = 0.0
+	var t := create_tween()
+	t.tween_property(body, "position:y", -130.0, 0.3).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
+	t.set_parallel(true)
+	t.tween_property(body, "rotation", _facing * 1.2, 0.9)
+	t.chain().tween_property(body, "position:y", 700.0, 0.6).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
 
 
 func respawn(pos: Vector2) -> void:
@@ -195,4 +282,6 @@ func respawn(pos: Vector2) -> void:
 	GameState.begin_level()
 	apply_form()
 	dead = false
+	body.position = Vector2.ZERO
+	body.rotation = 0.0
 	body.visible = true

@@ -33,7 +33,7 @@ const PRESETS := {
 	],
 	"exterior": [
 		{"image": "exterior/sky.png", "speed": 0.02, "fill": true},
-		{"image": "exterior/ship.png", "piece_at": 0.9, "speed": 0.18, "scale": 0.95, "bottom": 560.0, "tint": Color(0.75, 0.8, 0.95, 1.0)},
+		{"image": "exterior/ship.png", "piece_at": 0.93, "speed": 0.18, "scale": 0.95, "bottom": 560.0, "tint": Color(0.75, 0.8, 0.95, 1.0)},
 		{"image": "exterior/near.png", "speed": 0.4, "scale": 1.8, "bottom": 940.0},
 	],
 	"interior": [

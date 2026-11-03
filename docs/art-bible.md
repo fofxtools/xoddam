@@ -58,3 +58,12 @@ Round 1 enemy picks (purple blob, beetle) are retired.
 
 ## Still open
 - Final powered-down cage and title backdrop picks, shadow cleanup, rotating the arrow onto a separate button base, the tile/ground and platform art for the four levels, and turning sprites into pose frames.
+
+## Tablet budget (checked 2026-11-02, estimated, no device test)
+- Background textures per level, uncompressed in video memory: outdoors 22 MB, city 24 MB, exterior 16 MB, interior 32 MB. Only one level is loaded at a time, so this is fine for a mid-range tablet (budget guideline: stay under about 100 MB of textures in total).
+- Sprites are small (a few hundred pixels each); animation frames for all characters should stay under about 30 MB combined. Keep frame size no larger than the on-screen size times 2.
+- Do not enable mipmaps on 2D sprites or backgrounds. If memory becomes a problem on a real device: store the mirrored strips unmirrored (half the width, flip a second sprite in code), then switch Android imports to ASTC compression.
+- Renderer stays GL Compatibility. Test on a real device when one is available; until then re-run this estimate whenever backgrounds change.
+
+## Enemy art (in the game)
+Pictures in `art/sprites/enemies/`, built by `tools/make_enemy_sprites.py` from the picked cut-outs. One picture per enemy plus code motion (waddle, rock, squash); no separate walk frames yet. The spiky boss body is the retracted-spikes version (`boss_in`), so its remaining small head and back nubs are always visible.

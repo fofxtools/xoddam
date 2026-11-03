@@ -4,9 +4,7 @@ extends StaticBody2D
 
 const TILE := 64.0
 const HEIGHT_TILES := 7
-const WIDTH := 48.0
-const COL_BAR := Color("#6b6f80")
-const COL_BAND := Color("#3d4050")
+const WIDTH := 88.0
 
 var boss: Node = null
 
@@ -22,12 +20,30 @@ func _ready() -> void:
 	shape.shape = rect
 	shape.position = Vector2(0.0, -height / 2.0)
 	add_child(shape)
-	# bars
-	for i in 5:
-		add_child(_rect(Vector2(-WIDTH / 2.0 + 4.0 + i * 10.0, -height), Vector2(6.0, height), COL_BAR))
-	# cross bands
-	for i in 4:
-		add_child(_rect(Vector2(-WIDTH / 2.0, -height + 20.0 + i * (height - 60.0) / 3.0), Vector2(WIDTH, 12.0), COL_BAND))
+	# three pictures: a cap on top, a foot at the bottom, and a middle slice repeated down the gate
+	var top := _art("gate_top")
+	var foot := _art("gate_foot")
+	var cap_h := top.texture.get_height() * 0.5
+	var foot_h := foot.texture.get_height() * 0.5
+	top.position = Vector2(-WIDTH / 2.0, -height)
+	foot.position = Vector2(-WIDTH / 2.0, -foot_h)
+	var mid_h := (load("res://art/sprites/game/gate_mid.png") as Texture2D).get_height() * 0.5
+	var y := -height + cap_h
+	while y < -foot_h - 1.0:
+		var piece := _art("gate_mid")
+		piece.position = Vector2(-WIDTH / 2.0, y)
+		add_child(piece)
+		y += mid_h
+	add_child(top)
+	add_child(foot)
+
+
+func _art(sprite_name: String) -> Sprite2D:
+	var s := Sprite2D.new()
+	s.texture = load("res://art/sprites/game/" + sprite_name + ".png")
+	s.centered = false
+	s.scale = Vector2(0.5, 0.5)
+	return s
 
 
 func _physics_process(_delta: float) -> void:
@@ -46,11 +62,3 @@ func _open_gate() -> void:
 	tween.tween_property(self, "position:y", position.y - TILE * HEIGHT_TILES, 0.9)
 	tween.tween_property(self, "modulate:a", 0.0, 0.9)
 
-
-func _rect(pos: Vector2, size: Vector2, color: Color) -> ColorRect:
-	var r := ColorRect.new()
-	r.position = pos
-	r.size = size
-	r.color = color
-	r.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	return r

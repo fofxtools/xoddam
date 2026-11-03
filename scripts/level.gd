@@ -33,9 +33,6 @@ const COL_SKY := Color("#a9d6f5")
 const COL_SOLID := Color("#5b6b82")
 const COL_TOP := Color("#7dbb4a")
 const COL_ONEWAY := Color("#c8913f")
-const COL_SPIKE := Color("#d64545")
-const COL_COIN := Color("#f7c531")
-const COL_CAGE := Color("#9ea3b0")
 
 @export_file("*.txt") var map_path := "res://levels/level_01.txt"
 
@@ -82,8 +79,7 @@ func _ready() -> void:
 	# Real levels get their own background; the one-room test levels stay plain; the debug menu can force one.
 	var backdrop_kind: String = GameState.backdrop_test
 	if backdrop_kind == "" and GameState.map_override == "":
-		var number := GameState.LEVELS.find(scene_file_path)
-		backdrop_kind = Backdrop.kind_for_level(number if number >= 0 else GameState.level_index)
+		backdrop_kind = _level_look()
 	if backdrop_kind != "":
 		var backdrop := Backdrop.new(backdrop_kind, level_size.x)
 		add_child(backdrop)
@@ -225,6 +221,23 @@ func _rect_shape(size: Vector2) -> RectangleShape2D:
 	return s
 
 
+## Which look (see backdrop.gd) this level has, from its place in GameState.LEVELS.
+func _level_look() -> String:
+	var number := GameState.LEVELS.find(scene_file_path)
+	return Backdrop.kind_for_level(number if number >= 0 else GameState.level_index)
+
+
+## A picture from art/sprites/game/ (stored at 2x, drawn at half size). `from_feet`: the bottom centre is the origin.
+func _art(sprite_name: String, from_feet := false) -> Sprite2D:
+	var s := Sprite2D.new()
+	s.texture = load("res://art/sprites/game/" + sprite_name + ".png")
+	s.scale = Vector2(0.5, 0.5)
+	if from_feet:
+		s.centered = false
+		s.offset = Vector2(-s.texture.get_width() / 2.0, -s.texture.get_height())
+	return s
+
+
 func _color_rect(pos: Vector2, size: Vector2, color: Color) -> ColorRect:
 	var r := ColorRect.new()
 	r.position = pos
@@ -232,17 +245,6 @@ func _color_rect(pos: Vector2, size: Vector2, color: Color) -> ColorRect:
 	r.color = color
 	r.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return r
-
-
-func _ellipse(center: Vector2, rx: float, ry: float, color: Color) -> Polygon2D:
-	var poly := Polygon2D.new()
-	var pts := PackedVector2Array()
-	for i in 20:
-		var t := TAU * i / 20.0
-		pts.append(center + Vector2(cos(t) * rx, sin(t) * ry))
-	poly.polygon = pts
-	poly.color = color
-	return poly
 
 
 func _add_solid(parent: Node2D, x: int, y: int, w: int, h: int) -> void:
@@ -288,9 +290,7 @@ func _pickup_area(parent: Node2D, x: int, y: int, radius: float, callback: Calla
 
 func _add_coin(parent: Node2D, x: int, y: int) -> void:
 	var area := _pickup_area(parent, x, y, 26.0, _on_coin_entered)
-	area.add_child(_ellipse(Vector2.ZERO, 22.0, 22.0, Color("#7a4a0c")))
-	area.add_child(_ellipse(Vector2.ZERO, 18.0, 18.0, COL_COIN))
-	area.add_child(_ellipse(Vector2.ZERO, 8.0, 8.0, Color("#ffe27a")))
+	area.add_child(_art("coin"))
 
 
 ## A loose egg lying on the ground (it falls to the floor from its cell). Mostly used in test rooms.
@@ -343,12 +343,10 @@ func _add_spikes(parent: Node2D, x: int, y: int) -> void:
 	col.shape = _rect_shape(Vector2(TILE - 20, 30))
 	col.position = Vector2(TILE / 2.0, TILE - 18)
 	area.add_child(col)
-	for i in 2:
-		var tri := Polygon2D.new()
-		var ox := i * TILE / 2.0
-		tri.polygon = PackedVector2Array([Vector2(ox, TILE), Vector2(ox + TILE / 4.0, TILE - 40), Vector2(ox + TILE / 2.0, TILE)])
-		tri.color = COL_SPIKE
-		area.add_child(tri)
+	var picture := _art("spikes_tech" if _level_look() == "interior" else "spikes_row3", true)
+	picture.position = Vector2(TILE / 2.0, TILE)
+	picture.scale = Vector2(0.5, 0.75)  # a little taller than the picture's own shape, to match the hitbox
+	area.add_child(picture)
 	_spikes.append(area)
 	parent.add_child(area)
 
@@ -364,14 +362,13 @@ func _add_goal(parent: Node2D, x: int, y: int) -> void:
 	col.position = Vector2(0, -50)
 	area.add_child(col)
 
+	# The puppy is already in the closed-cage picture; the free puppy appears when the cage powers down.
 	_puppy = PuppyArt.new()
+	_puppy.visible = false
+	_puppy.position = Vector2(64, 0)
 	area.add_child(_puppy)
 
-	_cage = Node2D.new()
-	for i in 6:
-		_cage.add_child(_color_rect(Vector2(-42 + i * 16, -92), Vector2(6, 92), COL_CAGE))
-	_cage.add_child(_color_rect(Vector2(-46, -98), Vector2(92, 10), COL_CAGE))
-	_cage.add_child(_color_rect(Vector2(-46, -8), Vector2(92, 8), COL_CAGE))
+	_cage = _art("cage_closed", true)
 	area.add_child(_cage)
 
 	_goal_area = area
@@ -504,13 +501,12 @@ func _win() -> void:
 		GameState.start_level(GameState.level_index + 1)
 
 
-## The cage lifts away and fades, and the puppy hops for joy.
+## The cage powers down (dull bars) and the freed puppy hops for joy beside it.
 func _open_cage() -> void:
 	if _cage == null or _puppy == null:
 		return
-	var lift := create_tween().set_parallel(true)
-	lift.tween_property(_cage, "modulate:a", 0.0, 0.5)
-	lift.tween_property(_cage, "position:y", -50.0, 0.5)
+	(_cage as Sprite2D).texture = load("res://art/sprites/game/cage_off.png")
+	_puppy.visible = true
 	var hop := create_tween().set_loops(5)
 	hop.tween_property(_puppy, "position:y", -46.0, 0.18).set_ease(Tween.EASE_OUT)
 	hop.tween_property(_puppy, "position:y", 0.0, 0.18).set_ease(Tween.EASE_IN)

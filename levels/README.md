@@ -33,7 +33,7 @@ The boy defeats any stompable enemy with one stomp. "T-Rex" says what happens wh
 | `f` | flyer | flies back and forth in a wave | kills | defeats it |
 | `s` | swooper | hovers, dives at you when you pass under, returns | kills | defeats it |
 | `j` | hopper | walker that hops now and then | kills | defeats it |
-| `r` | chaser | patrols, then rushes you when you get close | kills | defeats it |
+| `r` | chaser | stands still until you get close, then runs at you | kills | defeats it |
 | `a` | armored | spiky walker | hurts you | defeats it |
 | `u` | urchin | spiky walker whose spikes are out for 1.5 s, then in for 3 s | kills only while the spikes are in | defeats it |
 | `k` | shell | stomp it into a shell, touch the shell to kick it; sliding shells hurt you and defeat other enemies | see left | defeats it while walking |
@@ -44,6 +44,8 @@ The boy defeats any stompable enemy with one stomp. "T-Rex" says what happens wh
 | `C` | charger boss | boss-sized chaser, no spikes: rushes you when you are within about 10 tiles; needs 3 stomps; stunned and faster (walking and charging) after each | counts a hit | hurts you |
 
 ## Design limits (from the jump tuning)
+
+Every level ends with the puppy `G` on flat ground and at least 9 tiles of ground after it, so the touch jump button (bottom right) never hides the cage.
 
 Max jump height about 3 tiles, safe gap up to 4 tiles.
 Keep drops (pits) rare and small. Death drops are minimal in this kid's game.

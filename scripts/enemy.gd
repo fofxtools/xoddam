@@ -16,6 +16,10 @@ const STOMP_FRACTION := 0.5
 const POPPER_RISE_TIME := 0.35
 ## A player moving up faster than this (px/s) is jumping into a flyer from below, not standing on it.
 const RISING_LIMIT := 100.0
+## The top part of a stompable enemy is "soft": touching it from above (even on the way up, clipping the head or shoulder
+## corner of a tall enemy) never hurts; you land on it and stomp it. Fraction of its height, capped in pixels.
+const SOFT_TOP_FRACTION := 0.4
+const SOFT_TOP_MAX := 90.0
 
 @export var kind := "walker"
 @export var behavior := "walker"
@@ -32,6 +36,10 @@ const RISING_LIMIT := 100.0
 @export var hits_to_defeat := 1
 @export var speed_up_per_hit := 1.35
 @export var ledge_offset := 34.0
+## A chaser that stands still (idle pose) until it spots the player, then runs.
+@export var idle_until_chased := false
+## Distance (px) travelled per walk picture; 0 means 0.8 x height. Only used when the enemy has walk pictures.
+@export var frame_stride := 0.0
 
 @export_group("Flyer and swooper")
 @export var fly_amplitude := 48.0
@@ -80,12 +88,17 @@ var _swoop_dir := Vector2.ZERO
 var _swoop_end_y := 0.0
 var _swoop_travel := 0.0
 var _body_base_y := 0.0
+var _waddle := 0.0
+var _frames: Array[Texture2D] = []
+var _idle_tex: Texture2D
+var _frame_dist := 0.0
 var _spike_nodes: Array[Node] = []
 var _spike_time := 0.0
 var _spikes_out := true
 
 @onready var _hitbox: Area2D = $Hitbox
-@onready var _body: ColorRect = $Body
+@onready var _body: Node2D = $Body
+@onready var _art: Sprite2D = $Body/Art
 @onready var _ledge: RayCast2D = get_node_or_null("Ledge")
 
 
@@ -97,6 +110,7 @@ func _ready() -> void:
 	_hop_timer = hop_interval * 0.5
 	_fire_timer = fire_interval * 0.5
 	_body_base_y = _body.position.y
+	_load_walk_frames()
 	for c in _body.get_children():
 		if c.name.begins_with("Spike"):
 			_spike_nodes.append(c)
@@ -135,11 +149,60 @@ func _physics_process(delta: float) -> void:
 			_move_shell(delta)
 		_:
 			_move_walking(delta)
+	_animate(delta)
 	# monitoring is switched back on a frame after _active (it is set deferred), so check both.
 	if _active and _hitbox.monitoring:
 		for b in _hitbox.get_overlapping_bodies():
 			if b.has_method("hurt"):
 				_touch(b)
+
+
+## The pictures face right. Face the way it moves, and wobble: walkers waddle (tilt and a little hop in step with their
+## feet), flyers rock gently. Spikes and the squash from a stomp live on the same Body node.
+func _animate(delta: float) -> void:
+	_body.scale.x = 1.0 if _dir > 0.0 else -1.0
+	if not _frames.is_empty():
+		_animate_frames(delta)
+		return
+	match behavior:
+		"walker", "chaser", "hopper":
+			if absf(velocity.x) > 10.0 and is_on_floor():
+				var strength := clampf(56.0 / height, 0.4, 1.0)
+				_waddle += delta * (6.0 + absf(velocity.x) / 40.0)
+				_body.rotation = sin(_waddle) * 0.09 * strength
+				_body.position.y = -absf(sin(_waddle)) * 5.0 * strength
+			else:
+				_body.rotation = lerpf(_body.rotation, 0.0, minf(delta * 12.0, 1.0))
+				_body.position.y = lerpf(_body.position.y, 0.0, minf(delta * 12.0, 1.0))
+		"flyer", "swooper":
+			_body.rotation = sin(_time * fly_frequency) * 0.1
+
+
+## Enemies with art/sprites/enemies/<scene>_walk1..4.png step through those pictures as they travel (like the player's
+## run); the plain <scene>.png is the standing picture.
+func _load_walk_frames() -> void:
+	var base := scene_file_path.get_file().get_basename()
+	for i in range(1, 5):
+		var path := "res://art/sprites/enemies/%s_walk%d.png" % [base, i]
+		if ResourceLoader.exists(path):
+			_frames.append(load(path))
+	_idle_tex = _art.texture
+
+
+func _animate_frames(delta: float) -> void:
+	if absf(velocity.x) > 10.0 and is_on_floor():
+		_frame_dist += absf(velocity.x) * delta
+		var stride := frame_stride if frame_stride > 0.0 else height * 0.8
+		_show_texture(_frames[int(_frame_dist / stride) % _frames.size()])
+	else:
+		_show_texture(_idle_tex)
+
+
+func _show_texture(tex: Texture2D) -> void:
+	if _art.texture == tex:
+		return
+	_art.texture = tex
+	_art.offset = Vector2(-tex.get_width() / 2.0, -tex.get_height())
 
 
 func _player() -> CharacterBody2D:
@@ -170,6 +233,8 @@ func _move_walking(delta: float) -> void:
 	var at_edge := is_on_floor() and not _ledge.is_colliding()
 	# A chaser stops at a ledge instead of running off it.
 	velocity.x = 0.0 if (chasing and at_edge) else _dir * move_speed
+	if behavior == "chaser" and idle_until_chased and not chasing:
+		velocity.x = 0.0
 	move_and_slide()
 	var offset := global_position.x - _origin_x
 	var too_far := not chasing and absf(offset) > patrol_range and signf(offset) == _dir
@@ -231,10 +296,6 @@ func _update_turret(delta: float) -> void:
 	var dx := p.global_position.x - global_position.x
 	if absf(dx) < fire_range and absf(p.global_position.y - global_position.y) < 400.0:
 		_dir = signf(dx) if absf(dx) > 8.0 else _dir
-		var barrel := get_node_or_null("Body/Barrel") as ColorRect
-		if barrel != null:
-			var w := _body.size.x
-			barrel.position.x = w - 14.0 if _dir > 0.0 else -barrel.size.x + 14.0
 		if _fire_timer <= 0.0:
 			_fire_timer = fire_interval
 			_fire()
@@ -297,8 +358,16 @@ func _touch(p: CharacterBody2D) -> void:
 		die("trex")
 	elif _can_stomp() and _is_stomp(p):
 		_stomped(p)
+	elif _can_stomp() and _in_soft_top(p):
+		pass  # grazing the head while still rising: harmless, and you will come down on it
 	else:
 		p.hurt(kind)
+
+
+## The player's feet are inside the soft top of this enemy.
+func _in_soft_top(p: CharacterBody2D) -> bool:
+	var soft := minf(height * SOFT_TOP_FRACTION, SOFT_TOP_MAX)
+	return p.global_position.y <= global_position.y - height + soft
 
 
 func _stomped(p: CharacterBody2D) -> void:

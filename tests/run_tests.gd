@@ -20,6 +20,7 @@ const TESTS := [
 	"test_trex_rules",
 	"test_bosses_need_three_stomps_and_speed_up",
 	"test_chasers_rush_the_player",
+	"test_tall_enemies_have_a_soft_top",
 	"test_item_block_gives_the_egg",
 	"test_heart_pickup_heals",
 	"test_boss_gate_blocks_until_the_boss_dies",
@@ -29,6 +30,7 @@ const TESTS := [
 	"test_victory_screen",
 	"test_intro_screen",
 	"test_backdrop_presets_build",
+	"test_player_poses",
 	"test_level_maps_are_valid",
 	"test_levels_load",
 ]
@@ -316,6 +318,30 @@ func test_chasers_rush_the_player() -> bool:
 	return true
 
 
+func test_tall_enemies_have_a_soft_top() -> bool:
+	# A running jump from 240 px away reaches the boss's head corner while still rising. That must be a stomp-in-waiting,
+	# not a hit: the boy lands on it and defeats a hit.
+	await _make_world()
+	var e := _spawn_enemy("boss", 900.0)
+	e._spike_time = e.spikes_out_time + 0.5  # spikes in, so it can be stomped
+	await _frames(3)
+	gs.hearts = 3
+	player.global_position = Vector2(900.0 - 240.0, 0.0)
+	player.velocity = Vector2.ZERO
+	await _frames(20)
+	Input.action_press("move_right")
+	Input.action_press("jump")
+	for i in 90:
+		await _frames(1)
+		if gs.hearts < 3 or e._hits_left < e.hits_to_defeat:
+			break
+	Input.action_release("move_right")
+	Input.action_release("jump")
+	check(gs.hearts == 3, "jumping into a tall boss's head corner while rising does not hurt")
+	check(e._hits_left < e.hits_to_defeat, "and the boy lands on it for a stomp")
+	return true
+
+
 func _eggs() -> Array:
 	var out := []
 	for c in world.get_children():
@@ -421,7 +447,7 @@ func test_level_four_has_everything() -> bool:
 			boss_col = row.find("B")
 		if row.contains("D"):
 			gate_col = row.find("D")
-	check(widest == 200, "level 4 is 200 tiles wide")
+	check(widest >= 200, "level 4 is at least 200 tiles wide (plus a run of ground after the puppy)")
 	check(boss_col > 70 and boss_col < 130, "the first boss is in the middle of the level")
 	check(gate_col > boss_col, "the gate is past the first boss")
 	var block_cols: Array[int] = []
@@ -558,6 +584,28 @@ func test_backdrop_presets_build() -> bool:
 		check(backdrop.get_child_count() == script.PRESETS[kind].size(), "the %s test backdrop builds all its layers" % kind)
 		backdrop.queue_free()
 		await process_frame
+	return true
+
+
+func test_player_poses() -> bool:
+	await _make_world()
+	await _frames(30)
+	check(player._pose == "boy_idle", "the boy stands in his idle pose")
+	player.velocity = Vector2(0, -300)
+	await _frames(2)
+	check(player._pose == "boy_jump", "rising shows the jump pose")
+	player.global_position.y -= 400.0
+	player.velocity = Vector2(0, 300)
+	await _frames(2)
+	check(player._pose == "boy_fall", "dropping shows the fall pose")
+	player.become_trex()
+	await _frames(30)
+	check(player._pose == "rex_idle", "the T-Rex has its own pose")
+	for pose in ["boy_idle", "boy_run1", "boy_run2", "boy_run3", "boy_run4", "boy_jump", "boy_fall", "rex_idle", "rex_air", "rex_run1", "rex_run2", "rex_run3", "rex_run4", "boy_dead"]:
+		check(ResourceLoader.exists("res://art/sprites/player/%s.png" % pose), "%s picture exists" % pose)
+	player.die("test")
+	await _frames(20)
+	check(player._pose == "boy_dead" and player.body.position.y < -20.0, "the boy plays his death animation")
 	return true
 
 
