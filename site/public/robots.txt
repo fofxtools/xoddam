@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://xoddam.com/sitemap-index.xml

@@ -1,5 +1,37 @@
 # Changelog
 
+## [0.1.5] - 2026-11-04
+
+The game is now on the web at https://xoddam.com, installable on phones and tablets, and has an Android app. It also has real screens, ground, sound and a steadier camera.
+
+### Added
+- **Website and web game:** a small site (`site/`) with the game at `/play/`. `python site/scripts/deploy.py` builds, uploads and checks it. Google Analytics is on every page. See `site/README.md`, `docs/hosting.md`, `docs/web-build.md`.
+- **Install from the browser (PWA):** add the web game to a phone's or tablet's home screen; it opens full screen and works offline once loaded.
+- **Android app (APK):** `python tools/export_android.py` builds a signed release APK (`build/android/xoddam.apk`), and the website offers it as a download. Not tried on a real tablet yet. See `docs/android-build.md`.
+- **Public repo files:** `README.md`, `docs/ARCHITECTURE.md`, `CREDITS.md`, and an MIT `LICENSE` for the code (the art stays all rights reserved).
+- **Real screens:** title, intro and victory screens have pictures, the logo and rounded blue buttons. The pause menu and Help match (Help has a small picture beside each tip). Text uses the rounded Fredoka font, and the app icon is the boy and T-Rex.
+- **Ground and platforms:** each level has its own ground (grass, asphalt, hull plating, deck) and platform pictures.
+- **Separate music and effects volume:** a Sound button (title and pause menu) with five notches for each, remembered between runs. It replaces the On/Off button.
+- **Coins:** the HUD shows the total collected. Every 20 coins refill the hearts and every 50 give an extra life.
+- **Camera:** it leans toward the way you face ("Look ahead", on or off in the pause menu) and has a zoom choice (1.0x to 2.0x, default 1.5x, in the pause menu).
+- **Effects and sounds:** coin sparkle, stomp stars, dust under the heavy and bosses' feet, a laser beam for turret shots, and new sounds for death, laser, stomp, the cage saying "no", and rescuing the puppy.
+- **Debug key H** heals all hearts.
+
+### Changed
+- **Sound works in the browser.** It was silent because the audio buses were made while the game ran (Godot issue 119026). They now come from `default_bus_layout.tres`.
+- **Saving is automatic only:** no Save or Load in the pause menu. Play asks "Start a new game?" before erasing a save that has progress.
+- **Game over is real:** "Start over" goes back to level 1 with fresh lives and no coins, and the save is wiped. "Main menu" is there too.
+- **Steadier camera:** it follows the ground you last stood on, not your jumps.
+- **Death animation:** like Mario 1, the boy freezes, pops up and drops. The level restarts after 1.8 s (was 0.6).
+- **The T-Rex is no more at risk from spikes than the boy** (spikes test a boy-sized box on the feet).
+- **Heavy and bosses** walk with more weight (four poses, dip and sway). The boss walks are tuned.
+- **Chaser boss** (was "charger boss") waits until you are within about 10 tiles, then runs at you fast.
+- **Turrets** fire from 640 px away (was 780), so they do not shoot from off-screen.
+- **Stomp sound** is punchier, and every sound is loaded at start so the first one is not late.
+- **Level 1 sky** no longer has faint horizontal bands.
+- **Settings file:** camera zoom and look-ahead are saved under `[display]` (was `[debug]`); old settings move across automatically.
+- **Code cleanup:** shared `UiStyle.overlay()` and `GameState.save_setting()`; the unused developer sound switch is gone.
+
 ## [0.1.4] - 2026-11-02
 
 The characters, enemies and props now use real art instead of coloured boxes. Ground and platforms are still plain.

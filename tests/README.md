@@ -3,13 +3,22 @@
 Godot has no built-in unit-test framework. These are plain GDScript checks that Godot runs itself from the
 command line, with no editor window, and the process exit code says whether they passed (0) or not (1).
 
-Run from the project folder, using the console build of Godot so the output shows:
+Run from the project folder.
 
-```bash
-tmp/Godot/Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/run_tests.gd
+Windows PowerShell (use Godot's **console** build so the output shows; set the variable once per window):
+
+```powershell
+$godot = "C:\path\to\Godot_v4.7.2-stable_win64_console.exe"
+& $godot --headless --path . --script res://tests/run_tests.gd
 ```
 
-It takes about 20 seconds. The last line reads `Results: N checks passed, M failed`.
+Linux or Mac, with `godot` on your PATH:
+
+```bash
+godot --headless --path . --script res://tests/run_tests.gd
+```
+
+It takes about 20 seconds and runs about 350 checks. The last line reads `Results: N checks passed, M failed`.
 
 ## What is covered (`run_tests.gd`)
 
@@ -20,7 +29,13 @@ It takes about 20 seconds. The last line reads `Results: N checks passed, M fail
 - **Level maps** (`levels/*.txt` and `levels/test/*.txt`): only legal characters, 17 rows, one start, one
   goal, one egg, and no enemy after the goal.
 - **The four real levels load** and build with a player start.
-- **Audio wiring** and the **victory screen** (two buttons, confetti, last-level check).
+- **Audio wiring** (every event has a sound, the buses come from `default_bus_layout.tres`, the volume notches and the
+  Sound card) and the **victory screen** (two buttons, confetti, last-level check).
+- **Screens and menus:** the intro, the "Start a new game?" confirmation, and a pause menu with no Save or Load.
+- **Camera:** the chosen zoom is applied, jumps do not move it, look-ahead leans and switches off; camera settings
+  saved the old way are moved.
+- **Feel:** spikes use a boy-sized hurt box, the heavy's walk has weight, coin and stomp effects clean up after
+  themselves, the boy's death animation, and the H debug key.
 
 ## Adding a test
 

@@ -39,6 +39,38 @@ func _ready() -> void:
 	list.add_theme_constant_override("separation", 14)
 	center.add_child(list)
 
+	# Camera zoom: bigger characters, less of the level visible. Applies to every level; remembered between runs.
+	var zoom_row := HBoxContainer.new()
+	zoom_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	zoom_row.add_theme_constant_override("separation", 12)
+	var zoom_label := Label.new()
+	zoom_label.text = "Camera zoom"
+	zoom_label.add_theme_font_size_override("font_size", 52)
+	zoom_row.add_child(zoom_label)
+	var zoom_buttons: Array[Button] = []
+	for z in GameState.CAMERA_ZOOMS:
+		var zb := Button.new()
+		zb.text = "%sx" % str(z)
+		zb.toggle_mode = true
+		zb.button_pressed = is_equal_approx(z, GameState.camera_zoom)
+		zb.custom_minimum_size = Vector2(150, 90)
+		zb.add_theme_font_size_override("font_size", 48)
+		zb.pressed.connect(func():
+			Audio.play_sfx("click")
+			GameState.set_camera_zoom(z)
+			for other in zoom_buttons:
+				other.button_pressed = other == zb)
+		zoom_buttons.append(zb)
+		zoom_row.add_child(zb)
+	list.add_child(zoom_row)
+
+	# Camera look-ahead: the view leans toward the way the player faces. Same switch as in the pause menu.
+	var look := _button("Camera look-ahead: %s" % ("On" if GameState.camera_look_ahead else "Off"))
+	look.pressed.connect(func():
+		GameState.set_camera_look_ahead(not GameState.camera_look_ahead)
+		look.text = "Camera look-ahead: %s" % ("On" if GameState.camera_look_ahead else "Off"))
+	list.add_child(look)
+
 	# The real levels worth jumping to (level 1 is just Play), above the one-room test levels.
 	var victory_button := _button("Victory screen")
 	victory_button.pressed.connect(func():

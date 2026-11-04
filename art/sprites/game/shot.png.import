@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dd2bh72emao71"
-path="res://.godot/imported/charger_boss_walk4.png-5399eeb023c686d26d6b112a8b152138.ctex"
+uid="uid://2vcvhu6xju6y"
+path="res://.godot/imported/shot.png-a3b9e32fd0f250ee78e1bc076bfd057d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/sprites/enemies/charger_boss_walk4.png"
-dest_files=["res://.godot/imported/charger_boss_walk4.png-5399eeb023c686d26d6b112a8b152138.ctex"]
+source_file="res://art/sprites/game/shot.png"
+dest_files=["res://.godot/imported/shot.png-a3b9e32fd0f250ee78e1bc076bfd057d.ctex"]
 
 [params]
 

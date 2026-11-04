@@ -3,7 +3,8 @@ extends Control
 ## Showing it also starts the game over for next time (see GameState.finish_game).
 
 const PuppyArt := preload("res://scripts/puppy.gd")
-const BUTTON_SIZE := Vector2(640, 150)
+const UiStyle := preload("res://scripts/ui_style.gd")
+const BUTTON_SIZE := Vector2(640, 112)
 const CONFETTI_COLORS := [
 	Color("#ef476f"), Color("#ffd166"), Color("#06d6a0"), Color("#118ab2"), Color("#c77dff"), Color("#ff9f1c"),
 ]
@@ -16,6 +17,7 @@ func _ready() -> void:
 	Audio.play_victory_music()
 	Audio.play_sfx("rescued")
 
+	UiStyle.backdrop(self, "victory.jpg")
 	var size := get_viewport_rect().size
 	_add_confetti(size)
 	_add_puppies(size)
@@ -24,7 +26,7 @@ func _ready() -> void:
 	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(center)
 	var box := VBoxContainer.new()
-	box.add_theme_constant_override("separation", 36)
+	box.add_theme_constant_override("separation", 24)
 	center.add_child(box)
 
 	box.add_child(_label("You did it!", 170))
@@ -40,21 +42,11 @@ func _ready() -> void:
 
 
 func _label(text: String, font_size: int) -> Label:
-	var l := Label.new()
-	l.text = text
-	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	l.add_theme_font_size_override("font_size", font_size)
-	l.add_theme_color_override("font_color", Color.WHITE)
-	l.add_theme_color_override("font_outline_color", Color("#1d2b4a"))
-	l.add_theme_constant_override("outline_size", 26)
-	return l
+	return UiStyle.title_label(text, font_size)
 
 
 func _button(text: String) -> Button:
-	var b := Button.new()
-	b.text = text
-	b.custom_minimum_size = BUTTON_SIZE
-	b.add_theme_font_size_override("font_size", 88)
+	var b := UiStyle.button(text, 68, BUTTON_SIZE)
 	b.pressed.connect(func(): Audio.play_sfx("click"))
 	return b
 

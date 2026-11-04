@@ -6,10 +6,16 @@ extends Node
 signal changed
 
 const SAVE_PATH := "user://save.json"
+const SETTINGS_PATH := "user://settings.cfg"
+## Camera zoom choices (1.0 shows the whole 1920 x 1080 view; higher zooms in, so characters look bigger).
+const CAMERA_ZOOMS: Array[float] = [1.0, 1.25, 1.5, 1.75, 2.0]
+const DEFAULT_CAMERA_ZOOM := 1.5
 const MAX_HEARTS := 3
 const START_LIVES := 3
-## Every this many coins refill all hearts, and those coins are used up (the counter starts again).
+## The coin counter keeps counting (it is the total collected). Every this many coins refill all hearts...
 const COINS_PER_HEAL := 20
+## ...and every this many coins give an extra life.
+const COINS_PER_LIFE := 50
 const MENU_SCENE := "res://scenes/main_menu.tscn"
 const VICTORY_SCENE := "res://scenes/victory.tscn"
 const INTRO_SCENE := "res://scenes/intro.tscn"
@@ -19,10 +25,15 @@ const SLOW_FRAME_LOG_INTERVAL_MS := 2000
 
 var hearts := MAX_HEARTS
 var lives := START_LIVES
+## Total coins collected so far in this game (shown in the HUD, saved, back to 0 for a new game).
 var coins := 0
 var is_trex := false
 var level_index := 0
 var levels_completed := 0
+## How far the game camera is zoomed in. Changed in the pause menu or debug screen and remembered between runs.
+var camera_zoom := DEFAULT_CAMERA_ZOOM
+## The camera leans toward the way the player faces, so more of what is ahead is visible. On/off in the pause menu.
+var camera_look_ahead := true
 ## Test levels (debug only, picked from the title screen): no lives lost, nothing saved.
 var test_mode := false
 ## When set, the level scene loads this map instead of its own (kept across restarts of the level).
@@ -34,6 +45,12 @@ var _last_slow_log_ms := -SLOW_FRAME_LOG_INTERVAL_MS
 
 
 func _ready() -> void:
+	var settings := ConfigFile.new()
+	if settings.load(SETTINGS_PATH) == OK:
+		if _move_camera_settings(settings):
+			settings.save(SETTINGS_PATH)
+		camera_zoom = float(settings.get_value("display", "camera_zoom", DEFAULT_CAMERA_ZOOM))
+		camera_look_ahead = bool(settings.get_value("display", "look_ahead", true))
 	log_event("boot", "game=%s godot=%s os=%s model=%s" % [
 		ProjectSettings.get_setting("application/config/name"),
 		Engine.get_version_info().string,
@@ -82,12 +99,15 @@ func heal(amount: int = 1) -> void:
 
 func add_coin() -> void:
 	coins += 1
-	if coins >= COINS_PER_HEAL:
-		coins = 0
+	var gives_life := coins % COINS_PER_LIFE == 0
+	if gives_life:
+		lives += 1
+		log_event("coins_extra_life", snapshot())
+	if coins % COINS_PER_HEAL == 0:
 		log_event("coins_refilled_health", snapshot())
 		heal(MAX_HEARTS)  # plays the heart sound and tells the HUD
 		return
-	Audio.play_sfx("coin")
+	Audio.play_sfx("heart" if gives_life else "coin")
 	changed.emit()
 
 
@@ -103,11 +123,48 @@ func lose_life() -> bool:
 	return lives <= 0
 
 
-## After a game over: fresh lives, coins are kept.
-func retry_after_game_over() -> void:
+## The game is over (out of lives): the saved progress is wiped, so Continue also starts from level 1.
+## Test and debug runs never lose lives, so they never get here.
+func game_over(save: bool = true) -> void:
+	log_event("game_over", snapshot())
+	levels_completed = 0
 	lives = START_LIVES
-	log_event("retry_after_game_over", snapshot())
-	begin_level()
+	coins = 0
+	if save:
+		save_game()
+
+
+func set_camera_zoom(zoom: float) -> void:
+	camera_zoom = zoom
+	save_setting("display", "camera_zoom", zoom)
+	log_event("camera_zoom", "zoom=%.2f" % zoom)
+
+
+func set_camera_look_ahead(on: bool) -> void:
+	camera_look_ahead = on
+	save_setting("display", "look_ahead", on)
+	log_event("camera_look_ahead", "on=%s" % on)
+
+
+## Remember one setting in user://settings.cfg, keeping all the others as they are.
+func save_setting(section: String, key: String, value) -> void:
+	var settings := ConfigFile.new()
+	settings.load(SETTINGS_PATH)
+	settings.set_value(section, key, value)
+	settings.save(SETTINGS_PATH)
+
+
+## The two camera choices used to be saved in a section called "debug", from when they were only in the debug menu. They
+## are in the pause menu too now, so they live under "display"; settings saved the old way are moved across once.
+## Returns true when it changed anything (the caller then saves the file).
+func _move_camera_settings(settings: ConfigFile) -> bool:
+	if not settings.has_section("debug"):
+		return false
+	for key in ["camera_zoom", "look_ahead"]:
+		if settings.has_section_key("debug", key) and not settings.has_section_key("display", key):
+			settings.set_value("display", key, settings.get_value("debug", key))
+	settings.erase_section("debug")
+	return true
 
 
 func new_game() -> void:
@@ -185,6 +242,20 @@ func finish_game(save: bool = true) -> void:
 
 func has_save() -> bool:
 	return FileAccess.file_exists(SAVE_PATH)
+
+
+## The saved game holds something worth keeping: a level finished or some coins collected. (Starting level 1 also writes
+## a save, but erasing that loses nothing.)
+func save_has_progress() -> bool:
+	if not has_save():
+		return false
+	return data_has_progress(JSON.parse_string(FileAccess.get_file_as_string(SAVE_PATH)))
+
+
+static func data_has_progress(data) -> bool:
+	if typeof(data) != TYPE_DICTIONARY:
+		return false
+	return int(data.get("levels_completed", 0)) > 0 or int(data.get("coins", 0)) > 0
 
 
 func save_game() -> void:

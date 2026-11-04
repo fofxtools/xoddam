@@ -11,6 +11,8 @@ extends CharacterBody2D
 ## Touch rules (see _touch): a stompable enemy is defeated by a stomp (hits_to_defeat stomps for a boss);
 ## a T-Rex defeats it by touch if trex_defeats; otherwise the player is hurt.
 
+const Effects := preload("res://scripts/effects.gd")
+
 ## Fraction of the enemy's height, from its top, that counts as "landed on top" for a stomp.
 const STOMP_FRACTION := 0.5
 const POPPER_RISE_TIME := 0.35
@@ -57,7 +59,7 @@ const SOFT_TOP_MAX := 90.0
 
 @export_group("Turret")
 @export var fire_interval := 3.0
-@export var fire_range := 780.0
+@export var fire_range := 640.0  # about half the view width at the default 1.5x zoom, so turrets do not shoot from off-screen
 @export var projectile_scene: PackedScene
 
 @export_group("Popper")
@@ -92,6 +94,8 @@ var _waddle := 0.0
 var _frames: Array[Texture2D] = []
 var _idle_tex: Texture2D
 var _frame_dist := 0.0
+var _step_index := 0
+var _dust: CPUParticles2D
 var _spike_nodes: Array[Node] = []
 var _spike_time := 0.0
 var _spikes_out := true
@@ -189,13 +193,66 @@ func _load_walk_frames() -> void:
 	_idle_tex = _art.texture
 
 
+## Walk pictures change with distance travelled, and the whole body also gets some weight: it dips and squashes as a
+## foot lands, rises and stretches as the other leg swings through, and sways side to side. Big enemies (the heavy and
+## the bosses) also kick up a puff of dust on every footstep.
 func _animate_frames(delta: float) -> void:
+	var size := clampf(height / 134.0, 0.6, 1.6)  # the heavy is 1.0; the bosses are bigger
 	if absf(velocity.x) > 10.0 and is_on_floor():
 		_frame_dist += absf(velocity.x) * delta
 		var stride := frame_stride if frame_stride > 0.0 else height * 0.8
-		_show_texture(_frames[int(_frame_dist / stride) % _frames.size()])
+		var phase := _frame_dist / stride  # one whole number = one picture: contact, passing, contact, passing
+		var index := int(phase)
+		_show_texture(_frames[index % _frames.size()])
+		var wave := cos(PI * (phase - 0.5))  # +1 in the middle of a contact picture, -1 in the middle of a passing one
+		var facing := 1.0 if _dir > 0.0 else -1.0
+		_body.position.y = (wave - 1.0) * 0.5 * 9.0 * size
+		_body.rotation = sin(PI * 0.5 * phase) * 0.045
+		_body.scale = Vector2(facing * (1.0 + 0.035 * wave), 1.0 - 0.04 * wave)
+		if index != _step_index:
+			_step_index = index
+			if index % 2 == 0 and height >= 120.0:
+				_footfall()
 	else:
 		_show_texture(_idle_tex)
+		_body.position.y = lerpf(_body.position.y, 0.0, minf(delta * 12.0, 1.0))
+		_body.rotation = lerpf(_body.rotation, 0.0, minf(delta * 12.0, 1.0))
+		_body.scale.y = lerpf(_body.scale.y, 1.0, minf(delta * 12.0, 1.0))
+
+
+## A small puff of dust at the feet, left behind in the world as the enemy walks on.
+func _footfall() -> void:
+	if _dust == null:
+		_dust = CPUParticles2D.new()
+		var puff := GradientTexture2D.new()
+		puff.fill = GradientTexture2D.FILL_RADIAL
+		puff.fill_from = Vector2(0.5, 0.5)
+		puff.fill_to = Vector2(1.0, 0.5)
+		puff.width = 32
+		puff.height = 32
+		var core := Gradient.new()
+		core.colors = PackedColorArray([Color(1, 1, 1, 0.9), Color(1, 1, 1, 0.0)])
+		puff.gradient = core
+		_dust.texture = puff
+		_dust.one_shot = true
+		_dust.emitting = false
+		_dust.amount = 7
+		_dust.lifetime = 0.5
+		_dust.explosiveness = 1.0
+		_dust.direction = Vector2(0, -1)
+		_dust.spread = 80.0
+		_dust.initial_velocity_min = 30.0
+		_dust.initial_velocity_max = 80.0
+		_dust.gravity = Vector2(0, 60)
+		_dust.scale_amount_min = 0.5
+		_dust.scale_amount_max = 1.1
+		_dust.color = Color(0.9, 0.85, 0.75, 0.85)
+		var fade := Gradient.new()
+		fade.colors = PackedColorArray([Color(1, 1, 1, 1), Color(1, 1, 1, 0)])
+		_dust.color_ramp = fade
+		add_child(_dust)
+	_dust.position = Vector2(-_dir * 18.0, -4.0)
+	_dust.restart()
 
 
 func _show_texture(tex: Texture2D) -> void:
@@ -306,8 +363,9 @@ func _fire() -> void:
 		return
 	var shot := projectile_scene.instantiate()
 	shot.direction = _dir
-	shot.position = position + Vector2(_dir * 44.0, -height * 0.6)
+	shot.position = position + Vector2(_dir * 100.0, -height * 0.6)  # the beam is about 140 long; its tail starts at the muzzle
 	get_parent().add_child(shot)
+	Audio.play_sfx("laser")
 	GameState.log_event("enemy_shot", "kind=%s dir=%d pos=%s" % [kind, int(_dir), global_position.round()])
 
 
@@ -402,6 +460,7 @@ func die(how: String = "unknown") -> void:
 		return
 	dead = true
 	Audio.play_sfx("stomp")
+	Effects.stomp_stars(get_parent(), global_position + Vector2(0.0, -height * 0.7))
 	GameState.log_event("enemy_defeated", "kind=%s how=%s pos=%s" % [kind, how, global_position.round()])
 	_hitbox.set_deferred("monitoring", false)
 	var tween := create_tween()

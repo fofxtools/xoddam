@@ -41,7 +41,7 @@ The boy defeats any stompable enemy with one stomp. "T-Rex" says what happens wh
 | `p` | popper | pops up out of the ground on a timer | hurts you | hurts you |
 | `h` | heavy | bigger, slower walker | kills | hurts you |
 | `B` | boss | much bigger, retractable spikes (1.5 s out, 3 s in); needs 3 stomps while they are in; stunned and faster after each | counts a hit, only while spikes are in | hurts you |
-| `C` | charger boss | boss-sized chaser, no spikes: rushes you when you are within about 10 tiles; needs 3 stomps; stunned and faster (walking and charging) after each | counts a hit | hurts you |
+| `C` | chaser boss | boss-sized chaser, no spikes: stands still until you come within about 10 tiles, then runs at you fast; needs 3 stomps; stunned and faster (walking and charging) after each | counts a hit | hurts you |
 
 ## Design limits (from the jump tuning)
 
@@ -54,11 +54,11 @@ Never make an unstompable enemy (`a`, `p`, or a `u` with spikes out) a gate the 
 ## Test levels
 
 `levels/test/*.txt` are small flat rooms, one per enemy type, each with a start `S`, an egg `e` (or a `?` block) and a goal `G`.
-In a debug build the title screen has a **Test levels** button listing them. Test levels never cost lives
+In a debug build the title screen has a **Debug Level Select** button listing them. Test levels never cost lives
 and never touch the save file. Add a new test room by dropping a `.txt` file in that folder.
 
 ## Export note
 
-The `.txt` maps are not Godot resources. Add `*.txt` to the export preset's
-"Filters to export non-resource files" or they will be missing from tablet builds.
-The `levels/test/` folder can be excluded from release builds.
+The `.txt` maps are not Godot resources, so an export must be told to include them. The Web preset in
+`export_presets.cfg` does (`levels/*.txt` in "Filters to export non-resource files"); do the same in any new preset
+or the levels will be empty. The `levels/test/` rooms are only reachable from debug builds.

@@ -1,5 +1,11 @@
 # Xoddam — KISS Plan
 
+> **This is the original plan, kept for the thinking behind the decisions.** The game has moved on: for what exists
+> now see the [README](../README.md) and [ARCHITECTURE.md](ARCHITECTURE.md), and for what changed see the
+> [CHANGELOG](../CHANGELOG.md). Where the rules below differ from the game, the game and the changelog are right.
+> Updated since: game over is a real "Start over" (back to level 1), coins refill hearts (every 20) and give a life
+> (every 50), and saving is automatic only.
+
 A small side-scrolling platformer for a boy to play on a **tablet**, also playable with a keyboard.
 Inspiration: Super Mario World, Super Mario Bros. Wonder.
 Goal: a "poor man's Wonder": modern HD, soft, colourful, rubbery 2D. **Not pixel art.**
@@ -28,12 +34,12 @@ Goal: a "poor man's Wonder": modern HD, soft, colourful, rubbery 2D. **Not pixel
 
 ## Game rules (v1)
 - **Hearts:** 3 hearts. **Lives:** 3 lives. Losing all hearts or falling in a pit costs a life and respawns at the start of the level. No checkpoints; levels are short.
-- **Game over:** losing the last life shows a friendly "Try again" screen, which restarts the level with fresh lives and hearts. Coins collected stay.
+- **Game over:** losing the last life shows "Game over" with "Start over" (level 1, fresh lives and no coins) and "Main menu". *(The first plan was a friendly "Try again" that restarted the level.)*
 - **Hero:** a young boy with long brown hair, t-shirt and shorts.
 - **T-Rex form:** a power-up item transforms the boy into a bigger T-Rex, like Mario's larger form. The form is the shield: one hit turns the T-Rex back into the boy (hearts untouched, short invincibility, a "poof" effect). As the boy, a hit costs a heart. The T-Rex also defeats the weakest enemy type (the Goomba equivalent) just by walking into it, no stomp needed. Other enemies still need a stomp.
 - **Big and clear UI:** hearts, lives and the coin count are large and high contrast, and kept clear of the thumb areas. Exact sizes are tuned on a real tablet screen; starting guess is hearts about 80 px and numbers about 64 px.
-- **Coins:** an extra life every 10 coins.
-- **Save/load:** automatic save to `user://save.json` (furthest level reached, lives, coins). Load on start; a "Continue" button on the title screen.
+- **Coins:** every 20 coins refill the hearts and every 50 give an extra life; the HUD shows the total. *(The first plan was a life every 10 coins.)*
+- **Save/load:** automatic save to `user://save.json` (furthest level reached, lives, coins) when a level starts or ends. A "Continue" button on the title screen loads it; Play asks before erasing a save that has progress. There is no manual save.
 
 ## Phases
 

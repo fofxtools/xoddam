@@ -1,20 +1,24 @@
 extends CanvasLayer
-## Pause menu: Resume, Save, Load, Restart level, Help, Sound on/off, Exit to title.
+## Pause menu: Resume, Restart level, Help, Sound (music and effects volume), Camera zoom, Look ahead on/off, Exit to title.
+## There is no Save or Load: the game saves by itself when a level starts or ends (see GameState), and Continue on the title
+## screen picks it up.
 ## Opened by the "pause" action (Escape key or the on-screen pause button); the same action closes it.
 
 const HelpPanel := preload("res://scripts/help_panel.gd")
-const BUTTON_SIZE := Vector2(640, 100)
-const FONT_SIZE := 64
+const SoundPanel := preload("res://scripts/sound_panel.gd")
+const UiStyle := preload("res://scripts/ui_style.gd")
+const BUTTON_SIZE := Vector2(520, 100)
+const FONT_SIZE := 54
 
 var enabled := true
 
 var _was_down := false
 var _panel: Control
 var _resume: Button
-var _save: Button
-var _load: Button
 var _help: Control
-var _sound: Button
+var _sound_panel: Control
+var _zoom: Button
+var _look: Button
 
 
 func _ready() -> void:
@@ -26,37 +30,33 @@ func _ready() -> void:
 	_panel.visible = false
 	add_child(_panel)
 
-	var dim := ColorRect.new()
-	dim.color = Color(0, 0, 0, 0.55)
-	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	_panel.add_child(dim)
+	var box := UiStyle.overlay(_panel, 20, Color(0, 0, 0, 0.55))
 
-	var center := CenterContainer.new()
-	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	_panel.add_child(center)
-	var box := VBoxContainer.new()
-	box.add_theme_constant_override("separation", 18)
-	center.add_child(box)
-
+	box.add_child(UiStyle.heading("Paused", 96))
 	_resume = _button(box, "Resume", func(): _set_open(false))
-	_save = _button(box, "Save", _on_save)
-	_load = _button(box, "Load", _on_load)
-	_button(box, "Restart level", _on_restart)
-	_button(box, "Help", func(): _help.open())
-	_sound = _button(box, Audio.sound_label(), func():
-		Audio.toggle_sound()
-		_sound.text = Audio.sound_label())
-	_button(box, "Exit to title", _on_exit)
+	_resume.custom_minimum_size = Vector2(BUTTON_SIZE.x * 2.0 + 20.0, BUTTON_SIZE.y + 16.0)
+
+	# The other buttons sit in two columns, so the whole menu fits the screen with room to spare.
+	var grid := GridContainer.new()
+	grid.columns = 2
+	grid.add_theme_constant_override("h_separation", 20)
+	grid.add_theme_constant_override("v_separation", 16)
+	box.add_child(grid)
+	_button(grid, "Restart level", _on_restart)
+	_button(grid, "Help", func(): _help.open())
+	_button(grid, "Sound", func(): _sound_panel.open())
+	_zoom = _button(grid, _zoom_label(), _on_zoom)
+	_look = _button(grid, _look_label(), _on_look)
+	_button(grid, "Exit to title", _on_exit)
 
 	_help = HelpPanel.new()
 	add_child(_help)
+	_sound_panel = SoundPanel.new()
+	add_child(_sound_panel)
 
 
 func _button(parent: Control, text: String, callback: Callable) -> Button:
-	var b := Button.new()
-	b.text = text
-	b.custom_minimum_size = BUTTON_SIZE
-	b.add_theme_font_size_override("font_size", FONT_SIZE)
+	var b := UiStyle.button(text, FONT_SIZE, BUTTON_SIZE)
 	b.pressed.connect(func(): Audio.play_sfx("click"))
 	b.pressed.connect(callback)
 	parent.add_child(b)
@@ -77,22 +77,40 @@ func _set_open(open: bool) -> void:
 	get_tree().paused = open
 	if not open:
 		_help.close()
+		_sound_panel.close()
 	_panel.visible = open
 	if open:
-		_load.disabled = not GameState.has_save()
-		_save.text = "Save"
-		_sound.text = Audio.sound_label()
+		_zoom.text = _zoom_label()
+		_look.text = _look_label()
 		_resume.grab_focus()
 
 
-func _on_save() -> void:
-	GameState.save_game()
-	_save.text = "Saved!"
+func _zoom_label() -> String:
+	return "Zoom: %sx" % str(GameState.camera_zoom)
 
 
-func _on_load() -> void:
-	_set_open(false)
-	GameState.continue_game()
+func _look_label() -> String:
+	return "Look ahead: %s" % ("On" if GameState.camera_look_ahead else "Off")
+
+
+func _on_look() -> void:
+	GameState.set_camera_look_ahead(not GameState.camera_look_ahead)
+	_look.text = _look_label()
+
+
+## Step through the zoom choices (1.0x ... 2.0x, then back to 1.0x) and apply it to the level right away.
+func _on_zoom() -> void:
+	var zooms := GameState.CAMERA_ZOOMS
+	var next := 0
+	for i in zooms.size():
+		if is_equal_approx(zooms[i], GameState.camera_zoom):
+			next = (i + 1) % zooms.size()
+	var level := get_parent()
+	if level.has_method("apply_camera_zoom"):
+		level.apply_camera_zoom(zooms[next])
+	else:
+		GameState.set_camera_zoom(zooms[next])
+	_zoom.text = _zoom_label()
 
 
 func _on_restart() -> void:

@@ -45,8 +45,8 @@ Concept images: `art/concepts/`. Generated with genimg (flux-2-klein-9b-Q4_K_M).
 All final picks are in `art/concepts/final/` (one file per thing, `manifest.json` has the source file, seed and prompt style).
 Round 1 enemy picks (purple blob, beetle) are retired.
 
-- **Enemies are all alien or robot,** one family around the green-man walker. Names: walker, flyer (drone), swooper, hopper, chaser, armored (American spelling), urchin, shell, turret, popper, heavy, boss, charger boss.
-- **Spike rule:** only enemies with spikes in the game rules may show spikes or horns: armored (always out), urchin and boss (retractable). Everything else is smooth. The picked `boss` and `charger_boss` images have horns; the horn-free versions are in `tmp/concepts/H_spike_states/` and must be used or the horns painted out when cutting the sprites. Spikes are separate pieces over a smooth body with empty sockets (`urchin_in` is the retracted body).
+- **Enemies are all alien or robot,** one family around the green-man walker. Names: walker, flyer (drone), swooper, hopper, chaser, armored (American spelling), urchin, shell, turret, popper, heavy, boss, chaser boss.
+- **Spike rule:** only enemies with spikes in the game rules may show spikes or horns: armored (always out), urchin and boss (retractable). Everything else is smooth. The picked `boss` and `chaser_boss` images have horns; the horn-free versions are in `tmp/concepts/H_spike_states/` and must be used or the horns painted out when cutting the sprites. Spikes are separate pieces over a smooth body with empty sockets (`urchin_in` is the retracted body).
 - **Levels:** 1 outdoors, 2 ruined city, 3 mothership exterior, 4 mothership interior. Backgrounds are layered parallax strips (sky, far, mid, near, plus a set piece), built in `scripts/backdrop.gd`; recipe in `docs/concept-art-plan.md`.
 - **Touch buttons:** symbol only, no text. Blue glossy round buttons (left, right, jump, pause).
 - **Puppy art:** idle, scared, in cage, happy. The cage must match the puppy-in-cage picture (see `tmp/concepts/N_cages`).
@@ -67,3 +67,6 @@ Round 1 enemy picks (purple blob, beetle) are retired.
 
 ## Enemy art (in the game)
 Pictures in `art/sprites/enemies/`, built by `tools/make_enemy_sprites.py` from the picked cut-outs. One picture per enemy plus code motion (waddle, rock, squash); no separate walk frames yet. The spiky boss body is the retracted-spikes version (`boss_in`), so its remaining small head and back nubs are always visible.
+
+## Ground (in the game)
+Pictures in `art/ground/<look>/` (top.png, fill.png, platform.png), built by `tools/make_ground.py` from `tmp/concepts/G2_ground` and `G3_plat`. Top strips and fills are mirrored so they repeat without a seam; the fill is colour-matched to the strip; platforms are 9-slice stretched. A look is chosen per level by `Backdrop.kind_for_level`.

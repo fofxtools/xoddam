@@ -39,7 +39,7 @@ ENEMIES = {
     "popper": ("A_enemies/popper_robot_s11.png", "grey", True, 84, []),
     "heavy": ("A_enemies/heavy_robot_s11.png", "grey", False, 135, ["Y_enemy/heavy_walk1_t1.png", "Y_enemy/heavy_pass1_t1.png", "Y_enemy/heavy_walk2_t1.png", "Y_enemy/heavy_pass2_t1.png"]),
     "boss": ("Y_enemy/boss_smooth_t3.png", "green", False, 210, ["Y_enemy/boss2_walk1_t1.png", "Y_enemy/boss_pass1_t1.png", "Y_enemy/boss2_walk2_t1.png", "Y_enemy/boss_pass2_t1.png"]),
-    "charger_boss": ("Y_enemy/charger2_idle_t2.png", "green", False, 210,
+    "chaser_boss": ("Y_enemy/charger2_idle_t2.png", "green", False, 210,
                      ["Y_enemy/charger2_c1_t2.png", "Y_enemy/charger2_p1_t2.png", "Y_enemy/charger2_c2_t2.png", "Y_enemy/charger2_p2_t2.png"]),
 }
 # spiky enemies: (spike count, spike length on screen, spread: "ring" around the top half, "back" along the top)

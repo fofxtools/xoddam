@@ -1,0 +1,67 @@
+---
+import Base from '../layouts/Base.astro';
+import { SITE } from '../config';
+---
+
+<Base title="Privacy" path="/privacy/" description="What Xoddam the Mighty collects, and what stays on your device.">
+  <main>
+    <article class="card">
+      <h1>Privacy</h1>
+      <p><em>Last updated {SITE.updated}.</em></p>
+
+      <h2>The game</h2>
+      <p>
+        The game does not ask for your name, an email address or any account. Your progress and your settings (sound,
+        zoom) are saved in your own browser, on your own device. We never receive them. If you clear your browser's
+        site data, the saved game is gone.
+      </p>
+
+      <h2>Counting visits</h2>
+      <p>
+        This site and the game page use Google Analytics to count visits: which pages are opened, roughly where in the
+        world a visit comes from, what kind of device and browser it is, and how people found the site. Google
+        Analytics uses cookies to do this. We use these numbers only to see how many people visit and which pages
+        work, not for advertising.
+      </p>
+      <p>
+        You can stop it by blocking cookies in your browser, with a content blocker, or with
+        <a href="https://tools.google.com/dlpage/gaoptout">Google's opt-out browser add-on</a>. The game works the
+        same without it.
+      </p>
+
+      <h2>The Android app</h2>
+      <p>
+        The Android app is the same game in a package. It has no internet permission and sends nothing anywhere. Its
+        saved game stays on the tablet.
+      </p>
+
+      <h2>Fonts and pictures</h2>
+      <p>The site's fonts and pictures are served from this site itself, not from another company's servers.</p>
+
+      <p><a href="/">Back to the game</a></p>
+    </article>
+  </main>
+</Base>
+
+<style>
+  main {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+  }
+  .card {
+    background: var(--card);
+    border: 5px solid var(--ink);
+    border-radius: 40px;
+    padding: 1.5rem 2rem;
+    font-size: 1.15rem;
+  }
+  h1 {
+    margin-top: 0;
+    font-size: 2.4rem;
+  }
+  h2 {
+    font-size: 1.5rem;
+    margin-bottom: 0.3rem;
+  }
+</style>

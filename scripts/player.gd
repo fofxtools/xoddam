@@ -16,6 +16,19 @@ const RUN_FRAMES := 4
 const RUN_STRIDE := 62.0
 const REX_RUN_STRIDE := 84.0
 const SQUASH_RECOVER := 12.0
+## Death animation: freeze (s), pop up (px) and fall (px) -- long enough to leave any screen.
+const DEATH_FREEZE := 0.4
+const DEATH_POP := 150.0
+const DEATH_DROP := 1100.0
+## Camera: it stays at the height of the ground you last stood on, so jumping does not bob the view. It only moves
+## up or down on its own when you land on a different level, or go more than this far above or below it.
+const CAM_LIFT := 120.0  # the view sits this far above the feet
+const CAM_UP_MARGIN := 300.0
+const CAM_DOWN_MARGIN := 120.0
+## Look-ahead: the camera leans this far (px) toward the way the player faces, easing there at LOOK_AHEAD_EASE per second.
+## Turn it off for everyone with GameState.camera_look_ahead (pause menu), or set LOOK_AHEAD to 0.
+const LOOK_AHEAD := 200.0
+const LOOK_AHEAD_EASE := 2.5
 
 @export var run_speed := 520.0
 @export var ground_accel := 6500.0
@@ -42,6 +55,7 @@ var _buffer := 0.0
 var _gravity := 0.0
 var _jump_velocity := 0.0
 var _facing := 1.0
+var _look := 0.0  # how far the camera is currently leaning sideways (px, + is to the right)
 var _textures := {}
 var _run_frames := {}  # form -> whether its run pictures exist (checked once)
 var _pose := ""
@@ -49,9 +63,12 @@ var _was_on_floor := true
 var _squash := Vector2.ONE
 var _run_dist := 0.0
 var _breath := 0.0
+var _ground_y := 0.0
+var _ground_known := false
 
 @onready var body: Node2D = $Body
 @onready var art: Sprite2D = $Body/Art
+@onready var cam: Camera2D = $Camera2D
 
 
 func _ready() -> void:
@@ -61,10 +78,21 @@ func _ready() -> void:
 	($Collision as CollisionShape2D).shape = ($Collision as CollisionShape2D).shape.duplicate()
 	apply_form()
 	_was_on_floor = is_on_floor()
+	cam.top_level = true  # the camera is steered from _update_camera, not glued to the player
+	cam.process_callback = Camera2D.CAMERA2D_PROCESS_PHYSICS
+	_update_camera()
 
 
 func is_trex() -> bool:
 	return GameState.is_trex
+
+
+## The part of the player that ground spikes can hurt: a box as big as the boy's body, standing on the feet, in both
+## forms. The T-Rex's body is much wider (it needs to be, for walls and stomping), which made spikes twice as easy to hit.
+## Only spikes use this box; enemies and shots still use the whole body.
+func spike_hurtbox() -> Rect2:
+	var size := Vector2(BOY_SIZE.x - 10.0, BOY_SIZE.y - 4.0)  # the boy's collision box (see apply_form)
+	return Rect2(global_position.x - size.x / 2.0, global_position.y - size.y, size.x, size.y)
 
 
 func apply_form() -> void:
@@ -183,6 +211,7 @@ func _physics_process(delta: float) -> void:
 
 	move_and_slide()
 	_animate(delta)
+	_update_camera()
 
 	# Head-bump: hitting the underside of something that reacts (an item block) triggers it.
 	for i in get_slide_collision_count():
@@ -198,7 +227,8 @@ func _physics_process(delta: float) -> void:
 func hurt(source: String = "unknown") -> void:
 	if dead or invincible > 0.0 or god_mode:
 		return
-	Audio.play_sfx("hurt")
+	if GameState.is_trex or GameState.hearts > 1:
+		Audio.play_sfx("hurt")  # a fatal hit plays the death sound instead (see die)
 	if GameState.is_trex:
 		GameState.is_trex = false
 		apply_form()
@@ -251,30 +281,52 @@ func die(cause: String = "unknown") -> void:
 	if dead:
 		return
 	dead = true
-	if cause == "pit":
-		Audio.play_sfx("hurt")
+	Audio.play_sfx("death")
 	GameState.log_event("player_died", "cause=%s pos=%s" % [cause, global_position.round()])
 	velocity = Vector2.ZERO
-	_play_death()
+	_play_death(cause)
 	died.emit()
 
 
-## The boy leaps up in surprise, tumbles and drops out of sight (a funny oops, not a scary one).
-func _play_death() -> void:
+## Steer the camera: follow sideways always, but vertically only the ground level (see CAM_UP_MARGIN).
+func _update_camera() -> void:
+	if is_on_floor() or not _ground_known:
+		_ground_y = global_position.y
+		if not _ground_known and is_on_floor():
+			_ground_known = true
+			cam.global_position = Vector2(global_position.x, _ground_y - CAM_LIFT)
+			cam.reset_smoothing()
+	var delta_y := global_position.y - _ground_y
+	var ref_y := _ground_y
+	if delta_y < -CAM_UP_MARGIN:
+		ref_y = global_position.y + CAM_UP_MARGIN
+	elif delta_y > CAM_DOWN_MARGIN:
+		ref_y = global_position.y - CAM_DOWN_MARGIN
+	var lean := _facing * LOOK_AHEAD if GameState.camera_look_ahead else 0.0
+	_look = lerpf(_look, lean, 1.0 - exp(-LOOK_AHEAD_EASE * get_physics_process_delta_time()))
+	cam.global_position = Vector2(global_position.x + _look, ref_y - CAM_LIFT)
+
+
+## Like Mario on the NES: freeze in the "oops" pose for a moment, pop up a little, then drop straight down off the
+## screen. No spinning. (Falling into a pit just keeps falling, so there is nothing to play.)
+func _play_death(cause: String) -> void:
+	if cause == "pit":
+		body.visible = false
+		return
 	body.visible = true
 	_pose = ""
 	_show_pose("boy_dead")
 	body.scale = Vector2(_facing, 1.0)
 	body.rotation = 0.0
 	var t := create_tween()
-	t.tween_property(body, "position:y", -130.0, 0.3).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
-	t.set_parallel(true)
-	t.tween_property(body, "rotation", _facing * 1.2, 0.9)
-	t.chain().tween_property(body, "position:y", 700.0, 0.6).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
+	t.tween_interval(DEATH_FREEZE)
+	t.tween_property(body, "position:y", -DEATH_POP, 0.4).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
+	t.tween_property(body, "position:y", DEATH_DROP, 0.9).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
 
 
 func respawn(pos: Vector2) -> void:
 	global_position = pos
+	_ground_known = false
 	velocity = Vector2.ZERO
 	_coyote = 0.0
 	_buffer = 0.0

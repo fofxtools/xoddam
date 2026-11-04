@@ -3,7 +3,7 @@ extends Node
 ## Everything here uses the placeholder CC0 files in audio/placeholder/ (see its README).
 ##   Audio.play_sfx("jump")           play a sound effect by event name
 ##   Audio.play_level_music(index)    start a level's music
-##   Audio.toggle_sound()             the on/off switch (remembered between runs)
+##   Audio.set_music_level(3)         music volume notch, 0 (off) to 4 (full); Audio.set_sfx_level(3) for effects
 
 const SFX_DIR := "res://audio/placeholder/sfx/"
 ## Which set of sound files to use. The first set that has a file wins; change the order to switch sets.
@@ -13,14 +13,17 @@ const EXTENSIONS := ["ogg", "mp3", "wav"]
 const SFX_FILES := {
 	"jump": "jump",
 	"coin": "coin",
-	"stomp": "stomp",
+	"stomp": "stomp_hard",  # loud and punchy on purpose, like Mario's stomp
 	"hurt": "hit",
+	"death": "death",
+	"laser": "laser",
+	"denied": "denied",  # the puppy cage will not open yet
 	"egg": "roar",
 	"heart": "extra_life",
 	"block": "block",
-	"boss_hit": "stomp",
+	"boss_hit": "stomp_hard",
 	"gate": "ui_confirm",
-	"rescued": "extra_life",
+	"rescued": "rescued",  # a longer fanfare with yips, so it stands out from the level music
 	"game_over": "game_over",
 	"click": "ui_click",
 }
@@ -41,9 +44,12 @@ const SFX_BUS := "SFX"
 const SFX_PLAYERS := 8
 const MUSIC_VOLUME_DB := -8.0
 const SFX_VOLUME_DB := -2.0
-const SETTINGS_PATH := "user://settings.cfg"
+## The player's volume choices are notches: 0 = off, 4 = full (today's loudness). The steps follow perceived loudness
+## (the volume is the notch fraction squared), so each notch sounds like a similar step.
+const NOTCHES := 5
 
-var sound_on := true
+var music_level := NOTCHES - 1
+var sfx_level := NOTCHES - 1
 
 var _music: AudioStreamPlayer
 var _sfx_players: Array[AudioStreamPlayer] = []
@@ -69,10 +75,16 @@ func _ready() -> void:
 		add_child(p)
 		_sfx_players.append(p)
 
+	# Load every effect now, so the first stomp or shot does not pause to read its file and plays right on time.
+	for event in SFX_FILES:
+		_load_sfx(event)
+
 	var settings := ConfigFile.new()
-	if settings.load(SETTINGS_PATH) == OK:
-		sound_on = settings.get_value("audio", "sound_on", true)
-	_apply_mute()
+	if settings.load(GameState.SETTINGS_PATH) == OK:
+		_migrate_old_switch(settings)
+		music_level = clampi(int(settings.get_value("audio", "music_level", NOTCHES - 1)), 0, NOTCHES - 1)
+		sfx_level = clampi(int(settings.get_value("audio", "sfx_level", NOTCHES - 1)), 0, NOTCHES - 1)
+	_apply_levels()
 
 
 func _exit_tree() -> void:
@@ -85,7 +97,7 @@ func _exit_tree() -> void:
 
 ## Play a sound effect for a game event (see SFX_FILES). Unknown or missing sounds are skipped quietly.
 func play_sfx(event: String) -> void:
-	if not sound_on:
+	if sfx_level == 0:
 		return
 	var stream := _load_sfx(event)
 	if stream == null:
@@ -117,27 +129,45 @@ func stop_music() -> void:
 	_music.stop()
 
 
-## The on/off switch. Turning sound off mutes everything; the choice is remembered between runs.
-func set_sound_on(on: bool, remember: bool = true) -> void:
-	sound_on = on
-	_apply_mute()
+## The old single Sound On/Off switch is gone (the notches replaced it). Someone who had left it off keeps both volumes
+## off; the old setting is then removed, so it can never leave the game muted with no way to turn the sound back on.
+func _migrate_old_switch(settings: ConfigFile) -> void:
+	if not settings.has_section_key("audio", "sound_on"):
+		return
+	if not settings.get_value("audio", "sound_on", true) and not settings.has_section_key("audio", "music_level"):
+		settings.set_value("audio", "music_level", 0)
+		settings.set_value("audio", "sfx_level", 0)
+	settings.erase_section_key("audio", "sound_on")
+	settings.save(GameState.SETTINGS_PATH)
+
+
+## Set the music volume notch (0 = off ... 4 = full) and remember it.
+func set_music_level(level: int, remember: bool = true) -> void:
+	music_level = clampi(level, 0, NOTCHES - 1)
+	_apply_levels()
 	if remember:
-		var settings := ConfigFile.new()
-		settings.load(SETTINGS_PATH)
-		settings.set_value("audio", "sound_on", on)
-		settings.save(SETTINGS_PATH)
+		GameState.save_setting("audio", "music_level", music_level)
 
 
-func toggle_sound() -> void:
-	set_sound_on(not sound_on)
+## Set the sound effects volume notch (0 = off ... 4 = full) and remember it.
+func set_sfx_level(level: int, remember: bool = true) -> void:
+	sfx_level = clampi(level, 0, NOTCHES - 1)
+	_apply_levels()
+	if remember:
+		GameState.save_setting("audio", "sfx_level", sfx_level)
 
 
-func sound_label() -> String:
-	return "Sound: On" if sound_on else "Sound: Off"
+## Volume of a notch in decibels: 0 dB at the top, quieter steps below it. (Notch 0 is switched off, not just quiet.)
+static func notch_db(level: int) -> float:
+	var fraction := float(clampi(level, 0, NOTCHES - 1)) / float(NOTCHES - 1)
+	return linear_to_db(maxf(fraction * fraction, 0.0001))
 
 
-func _apply_mute() -> void:
-	AudioServer.set_bus_mute(AudioServer.get_bus_index("Master"), not sound_on)
+func _apply_levels() -> void:
+	for pair in [[MUSIC_BUS, music_level], [SFX_BUS, sfx_level]]:
+		var bus := AudioServer.get_bus_index(pair[0])
+		AudioServer.set_bus_mute(bus, pair[1] == 0)
+		AudioServer.set_bus_volume_db(bus, notch_db(pair[1]))
 
 
 func _play_music(file: String) -> void:
@@ -175,10 +205,15 @@ func _load_sfx(event: String) -> AudioStream:
 	return stream
 
 
+## The Music and SFX buses are defined in default_bus_layout.tres, so they exist before the game starts. Do not create
+## buses with AudioServer.add_bus() at runtime: in Godot 4.3 to 4.7 web exports that breaks Sample playback (the browser
+## side loses its link to the speakers and everything is silent; Godot issue 119026, fixed only in 4.8). This
+## fallback, used only if the layout is missing, grows the bus count instead, which does not trigger that bug.
 func _ensure_bus(bus_name: String) -> void:
 	if AudioServer.get_bus_index(bus_name) != -1:
 		return
-	AudioServer.add_bus()
+	push_warning("audio bus '%s' is missing from default_bus_layout.tres; creating it" % bus_name)
+	AudioServer.bus_count += 1
 	var i := AudioServer.bus_count - 1
 	AudioServer.set_bus_name(i, bus_name)
 	AudioServer.set_bus_send(i, "Master")

@@ -140,3 +140,9 @@ environment_files/
 # Godot 4+ specific ignores
 .godot/
 /android/
+
+# Android signing keys and built packages: never commit these
+*.keystore
+*.jks
+*.apk
+*.aab

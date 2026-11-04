@@ -1,0 +1,21 @@
+{
+  "name": "xoddam-site",
+  "type": "module",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build && node scripts/copy-game.mjs && node scripts/copy-apk.mjs",
+    "build:site": "astro build",
+    "preview": "astro preview",
+    "deploy": "python scripts/deploy.py"
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "^3.7.4",
+    "@fontsource-variable/fredoka": "^5.2.0",
+    "astro": "^7.3.5"
+  }
+}

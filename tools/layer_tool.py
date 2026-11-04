@@ -19,6 +19,9 @@ def key_color(img: Image.Image, color: str = "green", lo: float = 70.0, hi: floa
     else:
         magenta = np.minimum(r, b) - g
     alpha = 1.0 - np.clip((magenta - lo) / (hi - lo), 0.0, 1.0)
+    # A key colour that is not perfectly even leaves a faint see-through haze (alpha 4-25%) over the empty parts of a
+    # layer; its rectangle edges showed as horizontal bands across the sky in game. Anything this faint is nothing.
+    alpha = np.where(alpha < 0.27, 0.0, alpha)
     # despill: bring red and blue down to green's level wherever they stick out above it a lot
     spill = np.clip(np.minimum(r, b) - g, 0, None) * (1.0 - alpha) * 0.0
     out = a.copy()

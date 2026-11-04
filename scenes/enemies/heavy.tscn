@@ -16,6 +16,7 @@ script = ExtResource("1")
 kind = "heavy"
 speed = 70.0
 patrol_range = 256.0
+frame_stride = 30.0
 height = 134.0
 trex_defeats = false
 ledge_offset = 66.0

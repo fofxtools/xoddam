@@ -18,6 +18,7 @@ kind = "boss"
 speed = 100.0
 speed_up_per_hit = 1.75
 patrol_range = 380.0
+frame_stride = 40.0
 height = 206.0
 trex_defeats = false
 hits_to_defeat = 3

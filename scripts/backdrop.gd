@@ -9,7 +9,8 @@ const SCREEN_H := 1080.0
 ## The camera is clamped to the level's bottom (1088 px), so the top of the screen is this far down the world.
 const WORLD_TOP := 8.0
 const MAX_VIEW_W := 2800.0
-const VIEW_W := 1920.0
+## The base view is 1920 px wide; the camera zoom (GameState.camera_zoom) shows less of the world.
+const BASE_VIEW_W := 1920.0
 
 ## The background of each real level, in level order (GameState.LEVELS).
 const LEVEL_KINDS := ["outdoors", "city", "exterior", "interior"]
@@ -87,8 +88,9 @@ func _add_piece(tex: Texture2D, l: Dictionary, scale: float, y_top: float, level
 	var layer := Parallax2D.new()
 	layer.scroll_scale = Vector2(speed, 1.0)
 	layer.modulate = l.get("tint", Color.WHITE)
-	var camera_left: float = l["piece_at"] * level_w - VIEW_W / 2.0
-	var x: float = VIEW_W / 2.0 - tex.get_width() * scale / 2.0 + camera_left * speed
+	var view_w := BASE_VIEW_W / GameState.camera_zoom
+	var camera_left: float = l["piece_at"] * level_w - view_w / 2.0
+	var x: float = view_w / 2.0 - tex.get_width() * scale / 2.0 + camera_left * speed
 	layer.add_child(_sprite(tex, scale, Vector2(x, y_top)))
 	add_child(layer)
 

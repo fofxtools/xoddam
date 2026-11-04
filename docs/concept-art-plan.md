@@ -49,7 +49,7 @@ Only enemies that really have spikes may show spikes or horns:
 - **Armoured:** spikes always out, stomp hurts.
 - **Urchin:** spikes out 1.5 s, in 3 s; stompable only while in.
 - **Spiky boss:** same cycle as the urchin.
-Everything else (walker, flyer/drone, swooper, hopper, chaser, shell, turret, popper, heavy, charger boss) is smooth: no spikes, no horns. The charger boss chosen so far has bull horns, so it is redone horn-free (`H_spike_states`).
+Everything else (walker, flyer/drone, swooper, hopper, chaser, shell, turret, popper, heavy, chaser boss) is smooth: no spikes, no horns. The chaser boss chosen so far has bull horns, so it is redone horn-free (`H_spike_states`).
 
 ## Retracting spikes: how the art works
 

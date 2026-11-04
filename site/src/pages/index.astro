@@ -1,0 +1,210 @@
+---
+import Base from '../layouts/Base.astro';
+import { SITE } from '../config';
+import { existsSync, statSync } from 'node:fs';
+import { resolve } from 'node:path';
+
+// The Android app is offered only when a built file exists (the build copies it to /download/). The build runs in
+// the site folder, so the project's build folder is one level up.
+const apkFile = resolve(process.cwd(), '..', 'build', 'android', 'xoddam.apk');
+const apkMb = existsSync(apkFile) ? Math.round(statSync(apkFile).size / 1e6) : 0;
+
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'VideoGame',
+  name: SITE.name,
+  url: SITE.url,
+  description: SITE.description,
+  genre: 'Platformer',
+  applicationCategory: 'Game',
+  operatingSystem: 'Any (web browser)',
+  isAccessibleForFree: true,
+};
+---
+
+<Base path="/">
+  <script type="application/ld+json" set:html={JSON.stringify(schema)} />
+  <header class="hero">
+    <img class="logo" src="/images/logo.webp" alt={SITE.name} width="900" height="413" />
+    <p class="tagline">{SITE.tagline}</p>
+    <a class="button" href={SITE.playPath}>Play now</a>
+    <p class="hint">Free. Works on phones, tablets and computers. Turn your device sideways!</p>
+  </header>
+
+  <main>
+    <section class="card about">
+      <h2>What is it?</h2>
+      <p>
+        Aliens have taken the puppies! Run and jump through four levels, squash the alien robots, find the egg and
+        turn into a mighty T-Rex, then free the puppy at the end of every level.
+      </p>
+      <ul>
+        <li><strong>Touch buttons</strong> on a phone or tablet, <strong>arrow keys</strong> on a computer.</li>
+        <li><strong>Jump on</strong> aliens to squash them. Careful with the spikes!</li>
+        <li><strong>Collect coins</strong> to refill your hearts, and to win extra lives.</li>
+      </ul>
+    </section>
+
+    <section class="shots" aria-label="Pictures from the game">
+      <img
+        src="/images/title.webp"
+        alt="The title screen: a T-Rex looks up at flying saucers"
+        width="1400"
+        height="700"
+        loading="lazy"
+      />
+      <div class="pair">
+        <img
+          src="/images/intro.webp"
+          alt="An alien ship carrying caged puppies over a town at night"
+          width="900"
+          height="506"
+          loading="lazy"
+        />
+        <img
+          src="/images/play-trex-city.webp"
+          alt="The T-Rex runs through a ruined city at sunset, past coins and a spiky alien robot"
+          width="1280"
+          height="720"
+          loading="lazy"
+        />
+        <img
+          src="/images/play-ship-outside.webp"
+          alt="The boy leaps across an alien ship's hull under the stars, toward a row of coins"
+          width="1280"
+          height="720"
+          loading="lazy"
+        />
+        <img
+          src="/images/play-ship-inside.webp"
+          alt="Inside the alien ship: glowing tubes, hanging cages and a mystery block"
+          width="1280"
+          height="720"
+          loading="lazy"
+        />
+      </div>
+    </section>
+
+    <p class="center"><a class="button" href={SITE.playPath}>Play now</a></p>
+
+    <section class="card install" id="install">
+      <h2>Put it on your tablet or phone</h2>
+      <p>
+        <strong>Any phone or tablet (easiest):</strong> open <a href={SITE.playPath}>the game</a> in your browser, then
+        choose <em>Install app</em> or <em>Add to Home screen</em> (Chrome: the three-dot menu. iPhone and iPad: the
+        Share button in Safari). It then opens full screen like an app.
+      </p>
+      {
+        apkMb > 0 && (
+          <>
+            <p>
+              <strong>Android tablet app:</strong> download the file below, then tap it to install. Android may ask you
+              to allow installs from your browser, and may warn about an unknown app. That is normal: this is not in
+              the Play Store.
+            </p>
+            <p class="center">
+              <a class="button small" href={SITE.android.path} download>
+                Download for Android (about {apkMb} MB)
+              </a>
+            </p>
+          </>
+        )
+      }
+    </section>
+  </main>
+
+  <footer>
+    <p>
+      © 2026 {SITE.name} · <a href="/privacy/">Privacy</a> · Made with
+      <a href="https://godotengine.org/">Godot</a>
+    </p>
+  </footer>
+</Base>
+
+<style>
+  .hero {
+    min-height: 92svh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 1.5rem;
+    text-align: center;
+    background: linear-gradient(#4aa3f0, #a9d6f5);
+  }
+  .logo {
+    width: min(92vw, 640px);
+    height: auto;
+  }
+  .tagline {
+    margin: 0;
+    font-size: clamp(1.4rem, 4.5vw, 2.2rem);
+    font-weight: 700;
+  }
+  .hint {
+    margin: 0;
+    font-size: 1.05rem;
+  }
+  main {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+    display: grid;
+    gap: 2rem;
+  }
+  .card {
+    background: var(--card);
+    border: 5px solid var(--ink);
+    border-radius: 40px;
+    padding: 1.5rem 2rem;
+    font-size: 1.2rem;
+  }
+  .card h2 {
+    margin-top: 0;
+    font-size: 2rem;
+  }
+  .about ul {
+    padding-left: 1.2rem;
+  }
+  .shots {
+    display: grid;
+    gap: 1rem;
+  }
+  .shots img {
+    width: 100%;
+    height: auto;
+    border: 5px solid var(--ink);
+    border-radius: 28px;
+    display: block;
+  }
+  .pair {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: 1fr 1fr;
+  }
+  .center {
+    text-align: center;
+    margin: 0;
+  }
+  .install p {
+    margin: 0 0 1rem;
+  }
+  .button.small {
+    font-size: clamp(1.1rem, 3.6vw, 1.5rem);
+    border-width: 4px;
+  }
+  footer {
+    padding: 1.5rem 1rem 2.5rem;
+    text-align: center;
+  }
+  @media (max-width: 640px) {
+    .pair {
+      grid-template-columns: 1fr;
+    }
+    .card {
+      padding: 1.2rem;
+      border-radius: 28px;
+    }
+  }
+</style>

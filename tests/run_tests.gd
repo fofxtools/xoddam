@@ -18,6 +18,8 @@ const TESTS := [
 	"test_side_hit_costs_a_heart",
 	"test_flyer_rising_into_a_standing_player_is_a_stomp",
 	"test_trex_rules",
+	"test_spikes_use_a_small_hurt_box",
+	"test_debug_heal_key",
 	"test_bosses_need_three_stomps_and_speed_up",
 	"test_chasers_rush_the_player",
 	"test_tall_enemies_have_a_soft_top",
@@ -26,10 +28,18 @@ const TESTS := [
 	"test_boss_gate_blocks_until_the_boss_dies",
 	"test_level_four_has_everything",
 	"test_game_state_rules",
+	"test_heavy_walk_has_weight",
 	"test_audio_is_wired",
+	"test_audio_buses_come_from_the_layout",
+	"test_sound_notches",
+	"test_new_game_confirmation",
 	"test_victory_screen",
 	"test_intro_screen",
 	"test_backdrop_presets_build",
+	"test_camera_zoom_is_applied",
+	"test_camera_ignores_jumps",
+	"test_camera_look_ahead",
+	"test_effects_burst_and_clean_up",
 	"test_player_poses",
 	"test_level_maps_are_valid",
 	"test_levels_load",
@@ -53,6 +63,11 @@ func _initialize() -> void:
 			failed += 1
 			push_error("FAIL %s: did not finish (runtime error?)" % t)
 		await _clear_world()
+	# The last test that built a level left its music playing; let go of it, or the engine reports it as leaked at exit.
+	var audio: Node = root.get_node("Audio")
+	audio.stop_music()
+	audio._music.stream = null
+	await create_timer(0.3).timeout  # the audio thread needs a moment to let go of the stopped playback
 	print("Results: %d checks passed, %d failed" % [passed, failed])
 	quit(1 if failed > 0 else 0)
 
@@ -258,8 +273,63 @@ func test_trex_rules() -> bool:
 	return true
 
 
+func test_spikes_use_a_small_hurt_box() -> bool:
+	var level: Node2D = load("res://scenes/level_01.tscn").instantiate()
+	root.add_child(level)
+	await process_frame
+	await process_frame
+	check(level._spikes.size() > 0, "level 1 has spikes to test with")
+	var spike: Area2D = level._spikes[0]
+	var shape_node := spike.get_child(0) as CollisionShape2D
+	var centre_x: float = spike.global_position.x + shape_node.position.x
+	var feet_y: float = spike.global_position.y + 64.0  # the bottom of the spike's tile: standing on the floor
+	var p: CharacterBody2D = level.player
+	for rex in [false, true]:
+		gs.is_trex = rex
+		p.apply_form()
+		var who := "T-Rex" if rex else "boy"
+		p.global_position = Vector2(centre_x + 40.0, feet_y)
+		check(level._spike_hurts(spike), "the %s 40 px from a spike's centre is hurt" % who)
+		p.global_position = Vector2(centre_x + 60.0, feet_y)
+		check(not level._spike_hurts(spike), "the %s 60 px from a spike's centre is not hurt" % who)
+		p.global_position = Vector2(centre_x - 60.0, feet_y)
+		check(not level._spike_hurts(spike), "the %s 60 px away on the other side is not hurt" % who)
+		p.global_position = Vector2(centre_x, feet_y - 300.0)
+		check(not level._spike_hurts(spike), "the %s well above the spike is not hurt" % who)
+	gs.is_trex = true
+	p.apply_form()
+	check((p.get_node("Collision") as CollisionShape2D).shape.size.x > 100.0, "the T-Rex's body is still wide (walls and stomps)")
+	gs.is_trex = false
+	level.queue_free()
+	await process_frame
+	return true
+
+
+func test_debug_heal_key() -> bool:
+	var level: Node2D = load("res://scenes/level_01.tscn").instantiate()
+	root.add_child(level)
+	await process_frame
+	await process_frame
+	var tools: Node = null
+	for c in level.get_children():
+		if c.get_script() != null and c.get_script().resource_path.ends_with("debug_tools.gd"):
+			tools = c
+	check(tools != null, "debug builds have the debug hotkeys")
+	if tools != null:
+		gs.hearts = 1
+		var key := InputEventKey.new()
+		key.keycode = KEY_H
+		key.pressed = true
+		tools._unhandled_input(key)
+		check(gs.hearts == gs.MAX_HEARTS, "the H key heals all hearts")
+	level.queue_free()
+	await process_frame
+	gs.hearts = gs.MAX_HEARTS
+	return true
+
+
 func test_bosses_need_three_stomps_and_speed_up() -> bool:
-	for kind in ["boss", "charger_boss"]:
+	for kind in ["boss", "chaser_boss"]:
 		await _make_world()
 		# Use the speeds the scene really has (_spawn_enemy freezes them), so tuning changes are tested.
 		var probe: CharacterBody2D = load(ENEMY_DIR + kind + ".tscn").instantiate()
@@ -294,7 +364,7 @@ func test_bosses_need_three_stomps_and_speed_up() -> bool:
 
 
 func test_chasers_rush_the_player() -> bool:
-	for kind in ["chaser", "charger_boss"]:
+	for kind in ["chaser", "chaser_boss"]:
 		await _make_world()
 		var e := _spawn_enemy(kind, 800.0)
 		# _spawn_enemy froze it; give it back its normal speeds
@@ -439,12 +509,14 @@ func test_level_four_has_everything() -> bool:
 	var lf := String.chr(10)
 	var rows := text.trim_suffix(lf).split(lf)
 	var widest := 0
-	var boss_col := -1
+	var boss_col := -1  # the first of the two bosses (B spiky, C chaser), whichever way round they are placed
 	var gate_col := -1
 	for row in rows:
 		widest = maxi(widest, row.length())
-		if row.contains("B"):
-			boss_col = row.find("B")
+		for boss_letter in "BC":
+			if row.contains(boss_letter):
+				var col := row.find(boss_letter)
+				boss_col = col if boss_col == -1 else mini(boss_col, col)
 		if row.contains("D"):
 			gate_col = row.find("D")
 	check(widest >= 200, "level 4 is at least 200 tiles wide (plus a run of ground after the puppy)")
@@ -463,8 +535,6 @@ func test_level_four_has_everything() -> bool:
 
 func test_audio_is_wired() -> bool:
 	var audio: Node = root.get_node("Audio")
-	var original_sound_on: bool = audio.sound_on
-	audio.set_sound_on(true, false)
 	for event in audio.SFX_FILES.keys():
 		check(audio.has_sfx(event), "there is a sound file for the event '%s'" % event)
 	var tracks: Array = [audio.MENU_MUSIC] + audio.LEVEL_MUSIC
@@ -498,10 +568,9 @@ func test_audio_is_wired() -> bool:
 			playing += 1
 	check(playing >= 1, "collecting a coin plays a sound")
 
-	# the on/off switch
-	var master := AudioServer.get_bus_index("Master")
-	audio.set_sound_on(false, false)
-	check(AudioServer.is_bus_mute(master), "turning sound off mutes everything")
+	# effects switched off make no sound
+	var sfx_before: int = audio.sfx_level
+	audio.set_sfx_level(0, false)
 	for p in audio._sfx_players:
 		p.stop()
 	audio.play_sfx("coin")
@@ -509,13 +578,92 @@ func test_audio_is_wired() -> bool:
 	for p in audio._sfx_players:
 		if p.playing:
 			playing += 1
-	check(playing == 0, "no sound effects start while sound is off")
-	audio.set_sound_on(true, false)
-	check(not AudioServer.is_bus_mute(master), "turning sound back on unmutes")
-	check(audio.sound_label() == "Sound: On", "the label reads Sound: On when on")
-	audio.set_sound_on(false, false)
-	check(audio.sound_label() == "Sound: Off", "the label reads Sound: Off when off")
-	audio.set_sound_on(original_sound_on, false)
+	check(playing == 0, "no sound effects start while the effects volume is off")
+	audio.set_sfx_level(sfx_before, false)
+	return true
+
+
+func test_audio_buses_come_from_the_layout() -> bool:
+	# Exactly Master, Music and SFX: the layout provides them, and nothing creates extra or duplicate buses at runtime.
+	check(AudioServer.bus_count == 3, "there are exactly three audio buses (%d)" % AudioServer.bus_count)
+	check(AudioServer.get_bus_name(0) == "Master", "bus 0 is Master")
+	check(AudioServer.get_bus_name(1) == "Music" and AudioServer.get_bus_name(2) == "SFX", "buses 1 and 2 are Music and SFX, in that order")
+	check(AudioServer.get_bus_send(1) == &"Master" and AudioServer.get_bus_send(2) == &"Master", "Music and SFX both send to Master")
+	var layout: AudioBusLayout = load("res://default_bus_layout.tres")
+	check(layout != null, "default_bus_layout.tres loads")
+	return true
+
+
+func test_sound_notches() -> bool:
+	var audio: Node = root.get_node("Audio")
+	var music_before: int = audio.music_level
+	var sfx_before: int = audio.sfx_level
+	check(audio.NOTCHES == 5, "there are five volume notches (off, 25, 50, 75, 100%)")
+	check(is_equal_approx(audio.notch_db(4), 0.0), "the top notch is full volume")
+	for i in [3, 2, 1]:
+		check(audio.notch_db(i) < audio.notch_db(i + 1), "notch %d is quieter than notch %d" % [i, i + 1])
+	var music_bus := AudioServer.get_bus_index(audio.MUSIC_BUS)
+	var sfx_bus := AudioServer.get_bus_index(audio.SFX_BUS)
+	audio.set_music_level(0, false)
+	check(AudioServer.is_bus_mute(music_bus) and not AudioServer.is_bus_mute(sfx_bus), "music off leaves the effects on")
+	audio.set_music_level(2, false)
+	audio.set_sfx_level(0, false)
+	check(not AudioServer.is_bus_mute(music_bus) and AudioServer.is_bus_mute(sfx_bus), "effects off leaves the music on")
+	check(is_equal_approx(AudioServer.get_bus_volume_db(music_bus), audio.notch_db(2)), "the music bus uses its notch's volume")
+	audio.set_sfx_level(99, false)
+	check(audio.sfx_level == 4, "a notch above the top is clamped to the top")
+
+	# the Sound card: tapping a bar sets that notch
+	var panel: Control = load("res://scripts/sound_panel.gd").new()
+	root.add_child(panel)
+	await process_frame
+	panel.open()
+	check(panel._rows.size() == 2, "the Sound card has a Music row and an Effects row")
+	check(panel._rows[0]["buttons"].size() == 5, "each row has five notches")
+	panel._rows[0]["buttons"][3].pressed.emit()
+	check(audio.music_level == 3, "tapping the third bar sets the music to notch 3")
+	panel._rows[1]["buttons"][0].pressed.emit()
+	check(audio.sfx_level == 0, "tapping Off turns the effects off")
+	panel.queue_free()
+	await process_frame
+	audio.set_music_level(music_before)  # put back what was there (this also re-saves it)
+	audio.set_sfx_level(sfx_before)
+	return true
+
+
+func test_new_game_confirmation() -> bool:
+	# what counts as progress worth asking about
+	check(not gs.data_has_progress(null), "no save data is no progress")
+	check(not gs.data_has_progress({"lives": 3, "coins": 0, "levels_completed": 0}), "a fresh level 1 save is not progress")
+	check(gs.data_has_progress({"lives": 3, "coins": 0, "levels_completed": 1}), "a finished level is progress")
+	check(gs.data_has_progress({"lives": 3, "coins": 12, "levels_completed": 0}), "collected coins are progress")
+
+	# the "are you sure?" card: Yes runs the action, No does not, and No has the focus
+	var panel: Control = load("res://scripts/confirm_panel.gd").new()
+	root.add_child(panel)
+	await process_frame
+	var ran := [0]
+	panel.open("Start a new game?", "Your saved game will be erased.", "Start new game", "Keep my game", func(): ran[0] += 1)
+	check(panel.visible, "the card opens")
+	check(panel._no.has_focus(), "the safe button (Keep my game) has the focus")
+	panel._no.pressed.emit()
+	check(ran[0] == 0 and not panel.visible, "Keep my game closes the card and does nothing")
+	panel.open("Start a new game?", "Your saved game will be erased.", "Start new game", "Keep my game", func(): ran[0] += 1)
+	panel._yes.pressed.emit()
+	check(ran[0] == 1 and not panel.visible, "Start new game closes the card and runs the action")
+	panel.queue_free()
+
+	# the pause menu has no manual Save or Load (the game saves by itself)
+	var pause: CanvasLayer = load("res://scripts/pause_menu.gd").new()
+	root.add_child(pause)
+	await process_frame
+	var labels: Array = []
+	for b in pause.find_children("*", "Button", true, false):
+		labels.append((b as Button).text)
+	check(not labels.has("Save") and not labels.has("Load"), "the pause menu has no Save or Load")
+	check(labels.has("Restart level") and labels.has("Exit to title"), "the pause menu still has Restart level and Exit to title")
+	pause.queue_free()
+	await process_frame
 	return true
 
 
@@ -531,8 +679,23 @@ func test_game_state_rules() -> bool:
 	check(gs.hearts == 1 and gs.coins == gs.COINS_PER_HEAL - 1, "%d coins heal nothing yet" % (gs.COINS_PER_HEAL - 1))
 	gs.add_coin()
 	check(gs.hearts == gs.MAX_HEARTS, "collecting %d coins refills all hearts" % gs.COINS_PER_HEAL)
-	check(gs.coins == 0, "the coins are used up when they refill the hearts")
-	check(gs.lives == 3, "coins no longer give extra lives")
+	check(gs.coins == gs.COINS_PER_HEAL, "the coin count keeps counting (it is the total collected)")
+	check(gs.lives == 3, "%d coins give no extra life yet" % gs.COINS_PER_HEAL)
+	gs.hearts = 1
+	for i in gs.COINS_PER_HEAL:
+		gs.add_coin()
+	check(gs.hearts == gs.MAX_HEARTS, "the next %d coins refill the hearts again" % gs.COINS_PER_HEAL)
+	for i in gs.COINS_PER_LIFE - gs.coins:
+		gs.add_coin()
+	check(gs.coins == gs.COINS_PER_LIFE and gs.lives == 4, "the %dth coin gives an extra life" % gs.COINS_PER_LIFE)
+	# camera settings saved the old way (section "debug") move to "display"
+	var old_cfg := ConfigFile.new()
+	old_cfg.set_value("debug", "camera_zoom", 2.0)
+	old_cfg.set_value("debug", "look_ahead", false)
+	check(gs._move_camera_settings(old_cfg), "old camera settings are found and moved")
+	check(not old_cfg.has_section("debug") and is_equal_approx(old_cfg.get_value("display", "camera_zoom"), 2.0)
+			and old_cfg.get_value("display", "look_ahead") == false, "the moved camera settings keep their values")
+	check(not gs._move_camera_settings(old_cfg), "nothing is left to move the second time")
 	gs.lives = 1
 	check(gs.lose_life() == true and gs.lives == 0, "losing the last life is game over")
 	gs.lives = 2
@@ -543,6 +706,32 @@ func test_game_state_rules() -> bool:
 	gs.test_mode = false
 	gs.begin_level()
 	check(gs.hearts == gs.MAX_HEARTS and not gs.is_trex, "a level starts with full hearts and as the boy")
+	gs.levels_completed = 2
+	gs.coins = 7
+	gs.lives = 0
+	gs.game_over(false)
+	check(gs.levels_completed == 0 and gs.coins == 0 and gs.lives == gs.START_LIVES,
+			"game over wipes the progress, so the next game starts from level 1 with fresh lives")
+	return true
+
+
+func test_heavy_walk_has_weight() -> bool:
+	await _make_world()
+	var heavy := _spawn_enemy("heavy", 600.0)
+	heavy.speed = 70.0
+	await _frames(40)
+	var ys: Array[float] = []
+	var picture_changes := 0
+	var last: Texture2D = heavy._art.texture
+	for i in 90:
+		await physics_frame
+		ys.append(heavy._body.position.y)
+		if heavy._art.texture != last:
+			picture_changes += 1
+			last = heavy._art.texture
+	check(ys.max() - ys.min() > 4.0, "the walking heavy bobs up and down")
+	check(picture_changes >= 3, "the walking heavy changes its walk picture several times a second (%d changes)" % picture_changes)
+	check(not is_equal_approx(heavy._body.scale.y, 1.0) or heavy._body.rotation != 0.0, "the walking heavy squashes and sways")
 	return true
 
 
@@ -569,9 +758,73 @@ func test_intro_screen() -> bool:
 	await process_frame
 	var buttons := screen.find_children("*", "Button", true, false)
 	check(buttons.size() == 1, "the intro has one button to start the game")
-	check(screen.find_children("*", "Line2D", true, false).size() >= 3, "the intro has alien lasers")
+	check(screen.find_children("*", "TextureRect", true, false).size() >= 1, "the intro has its picture")
 	screen.queue_free()
 	await process_frame
+	return true
+
+
+func test_camera_ignores_jumps() -> bool:
+	await _make_world()
+	await _frames(40)
+	var cam: Camera2D = player.get_node("Camera2D")
+	var rest_y := cam.global_position.y
+	player.velocity = Vector2(0, -900)  # a jump
+	var most := 0.0
+	for i in 50:
+		await _frames(1)
+		most = maxf(most, absf(cam.global_position.y - rest_y))
+	check(most < 1.0, "the camera does not move when the player jumps (moved %.1f px)" % most)
+	player.global_position.y += 500.0  # dropped far below the ground he was standing on
+	player.velocity = Vector2(0, 100)
+	await _frames(3)
+	check(cam.global_position.y > rest_y + 100.0, "but it follows a long drop")
+	return true
+
+
+func test_camera_look_ahead() -> bool:
+	await _make_world()
+	var cam: Camera2D = player.get_node("Camera2D")
+	await _frames(30)
+	gs.camera_look_ahead = true
+	player._facing = 1.0
+	await _frames(120)
+	check(cam.global_position.x > player.global_position.x + 150.0, "the camera leans ahead when facing right")
+	player._facing = -1.0
+	await _frames(240)
+	check(cam.global_position.x < player.global_position.x - 150.0, "the camera leans the other way when facing left")
+	gs.camera_look_ahead = false
+	await _frames(240)
+	check(absf(cam.global_position.x - player.global_position.x) < 20.0, "with look-ahead off the camera is centred on the player")
+	gs.camera_look_ahead = true
+	return true
+
+
+func test_effects_burst_and_clean_up() -> bool:
+	await _make_world()
+	var effects: GDScript = load("res://scripts/effects.gd")
+	effects.coin_sparkle(world, Vector2(100, -50))
+	effects.stomp_stars(world, Vector2(200, -50))
+	await process_frame
+	var bursts := world.find_children("*", "CPUParticles2D", true, false)
+	check(bursts.size() == 2, "a coin sparkle and a stomp burst are added to the world")
+	await create_timer(1.3).timeout
+	check(world.find_children("*", "CPUParticles2D", true, false).is_empty(), "the bursts remove themselves when finished")
+	return true
+
+
+func test_camera_zoom_is_applied() -> bool:
+	gs.camera_zoom = 1.5  # set directly, so the test does not touch the saved settings
+	var level: Node2D = load("res://scenes/level_01.tscn").instantiate()
+	root.add_child(level)
+	await process_frame
+	await process_frame
+	check(is_equal_approx(level.player.get_node("Camera2D").zoom.x, 1.5), "the level's camera uses the chosen zoom")
+	level.queue_free()
+	await process_frame
+	gs.camera_zoom = gs.DEFAULT_CAMERA_ZOOM
+	check(gs.CAMERA_ZOOMS.has(1.5) and gs.CAMERA_ZOOMS.size() == 5, "the zoom choices are 1.0 to 2.0")
+	check(is_equal_approx(gs.DEFAULT_CAMERA_ZOOM, 1.5), "the default zoom is 1.5x")
 	return true
 
 
@@ -605,7 +858,11 @@ func test_player_poses() -> bool:
 		check(ResourceLoader.exists("res://art/sprites/player/%s.png" % pose), "%s picture exists" % pose)
 	player.die("test")
 	await _frames(20)
-	check(player._pose == "boy_dead" and player.body.position.y < -20.0, "the boy plays his death animation")
+	check(player._pose == "boy_dead" and is_equal_approx(player.body.position.y, 0.0), "the boy freezes in his oops pose first")
+	await _frames(40)
+	check(player.body.position.y < -20.0 and is_zero_approx(player.body.rotation), "then pops straight up, without spinning")
+	await _frames(120)
+	check(player.body.position.y > 300.0, "then falls off the screen")
 	return true
 
 

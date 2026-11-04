@@ -51,6 +51,49 @@ def roar(seconds=1.4, vol=0.7):
     return out
 
 
+def stomp_hard():
+    # Mario-style stomp: a hard click, a fast falling square "bwip", then a low thump, all loud and over in 0.2 s
+    click = render([(0, 0, 0.012)], noise=True, vol=0.42)
+    bwip = render([(1100, 260, 0.08)], vol=0.45)
+    thump = render([(200, 55, 0.11)], wave_kind="tri", vol=0.57)
+    return click + bwip + thump
+
+
+def death():
+    # Falling jingle: four quick notes stepping down, then a long sad slide into the floor
+    notes = render([(f, f, 0.1) for f in (784, 659, 523, 392)], vol=0.5)
+    return notes + render([(330, 70, 0.55)], wave_kind="tri", vol=0.7)
+
+
+def rescued():
+    # Puppy freed: a happy rising fanfare, then two excited yips
+    fanfare = render([(f, f, 0.11) for f in (523, 659, 784, 1047)], vol=0.44) + render([(1047, 1047, 0.35)], wave_kind="tri", vol=0.48)
+    gap = render([(0, 0, 0.12)], vol=0.0)
+    yip = render([(700, 1500, 0.08)], vol=0.6) + render([(1500, 1100, 0.05)], vol=0.5)
+    return fanfare + gap + yip + render([(0, 0, 0.06)], vol=0.0) + yip
+
+
+def denied():
+    # "Nope": two low, flat buzzes
+    gap = render([(0, 0, 0.05)], vol=0.0)
+    return render([(170, 160, 0.1)], vol=0.44) + gap + render([(150, 130, 0.16)], vol=0.44)
+
+
+def laser():
+    # Sci-fi "pew": a bright sweep from high to low with a buzz on top
+    out = []
+    phase = 0.0
+    n = int(R * 0.22)
+    for i in range(n):
+        t = i / n
+        f = 2200 * (1 - t) ** 1.6 + 260
+        phase += f / R
+        p = phase % 1.0
+        s = (2 * p - 1) * 0.6 + (1.0 if (phase * 3.01) % 1.0 < 0.5 else -1.0) * 0.25
+        out.append(s * min(1.0, i / 40) * (1 - t) ** 0.9 * 0.4)
+    return out
+
+
 random.seed(1)
 sounds = {
     "jump": render([(300, 700, 0.16)]),
@@ -63,6 +106,11 @@ sounds = {
     "ui_click": render([(800, 600, 0.05)], vol=0.3),
     "block": bonk(),
     "roar": roar(),
+    "stomp_hard": stomp_hard(),
+    "death": death(),
+    "laser": laser(),
+    "rescued": rescued(),
+    "denied": denied(),
 }
 out = sys.argv[1]
 for name, s in sounds.items():

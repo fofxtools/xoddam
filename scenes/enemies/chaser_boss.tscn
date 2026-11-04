@@ -1,7 +1,7 @@
 [gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/enemy.gd" id="1"]
-[ext_resource type="Texture2D" path="res://art/sprites/enemies/charger_boss.png" id="art"]
+[ext_resource type="Texture2D" path="res://art/sprites/enemies/chaser_boss.png" id="art"]
 
 [sub_resource type="RectangleShape2D" id="1"]
 size = Vector2(160, 196)
@@ -9,19 +9,21 @@ size = Vector2(160, 196)
 [sub_resource type="RectangleShape2D" id="2"]
 size = Vector2(172, 206)
 
-[node name="ChargerBoss" type="CharacterBody2D"]
+[node name="ChaserBoss" type="CharacterBody2D"]
 collision_layer = 4
 collision_mask = 1
 script = ExtResource("1")
 kind = "boss"
+idle_until_chased = true
 speed = 80.0
 patrol_range = 380.0
+frame_stride = 55.0
 height = 206.0
 trex_defeats = false
 hits_to_defeat = 3
 behavior = "chaser"
 chase_range = 640.0
-chase_speed = 250.0
+chase_speed = 320.0
 ledge_offset = 100.0
 
 [node name="Body" type="Node2D" parent="."]

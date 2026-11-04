@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://pnado3b1tpy7"
-path="res://.godot/imported/charger_boss_walk1.png-b84de0214ad122b954a7f00dffb45088.ctex"
+uid="uid://de2gqxy4du82r"
+path="res://.godot/imported/level2-city-trex.jpg-7fd64bb22bb33de095b2e2af59cc98d3.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/sprites/enemies/charger_boss_walk1.png"
-dest_files=["res://.godot/imported/charger_boss_walk1.png-b84de0214ad122b954a7f00dffb45088.ctex"]
+source_file="res://docs/images/level2-city-trex.jpg"
+dest_files=["res://.godot/imported/level2-city-trex.jpg-7fd64bb22bb33de095b2e2af59cc98d3.ctex"]
 
 [params]
 
