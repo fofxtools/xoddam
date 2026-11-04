@@ -18,17 +18,17 @@ OUT.mkdir(exist_ok=True)
 
 
 def strip_shadow(img):
-    """Remove the soft grey ground shadow under a sprite: grey, unsaturated, light-ish pixels in the bottom part.
+    """Remove the soft gray ground shadow under a sprite: gray, unsaturated, light-ish pixels in the bottom part.
     (The sprite's own dark outline is much darker, so it stays.)"""
     a = np.asarray(img).astype(np.float32)
     h = a.shape[0]
     rgb = a[..., :3]
     mx, mn = rgb.max(axis=2), rgb.min(axis=2)
     sat = (mx - mn) / np.maximum(mx, 1.0)
-    grey = (sat < 0.14) & (mx > 70) & (mx < 215)
+    gray = (sat < 0.14) & (mx > 70) & (mx < 215)
     band = np.zeros(a.shape[:2], bool)
     band[int(h * 0.78):] = True
-    kill = grey & band
+    kill = gray & band
     a[..., 3] = np.where(kill, 0, a[..., 3])
     out = Image.fromarray(a.astype(np.uint8), "RGBA")
     bbox = out.getchannel("A").point(lambda v: 255 if v > 40 else 0).getbbox()

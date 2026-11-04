@@ -1,6 +1,6 @@
 # Placeholder audio (all CC0, safe to ship)
 
-Music, from OpenGameArt (CC0, verified on each page's licence field):
+Music, from OpenGameArt (CC0, verified on each page's license field):
 - flowerbed_fields.ogg - "Flowerbed Fields [Loop]" by Zane Little Music - https://opengameart.org/content/flowerbed-fields-loop
 - jump_cheerful.ogg - "Jump" by ThePixel - https://opengameart.org/content/jump
 - chiptune_adventures_*.ogg - "4 Chiptunes (Adventure)" by Juhani Junkala (SubspaceAudio) - https://opengameart.org/content/4-chiptunes-adventure

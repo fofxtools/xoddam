@@ -79,12 +79,9 @@ download link does not mention a version, so there is nothing to update there. T
 ## Put it on the website
 
 `site/scripts/copy-apk.mjs` copies the APK to `/download/xoddam.apk` whenever you build the site, and the landing page
-then shows a **Download for Android** button (only when an APK exists at build time). So:
-
-```bash
-python tools/export_android.py
-cd site; python scripts/deploy.py
-```
+then shows a **Download for Android** button (only when an APK exists at build time). So: build the APK, then deploy,
+as in "Quick version" above. The full release sequence (web game and app together) is in
+[web-build.md](web-build.md).
 
 If you deploy without an APK built, the website's existing download is left alone. `SKIP_APK=1` leaves the APK out
 of a build on purpose. Do not put an `.htaccess` file in `/download/`: on this server any `.htaccess` in that folder made

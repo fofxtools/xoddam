@@ -1,11 +1,10 @@
 extends CanvasLayer
 ## On-screen controls for tablets: left/right under the left thumb, jump under the right thumb.
-## Shown on touch devices; keep always_show on while developing on a desktop. Turn always_show off for a release,
-## and they appear only where there is a touch screen (see _is_touch_device).
+## Shown only where the device has a touch screen (see _is_touch_device). Debug runs (the editor, a debug export) always
+## show them, so they can be tried with the mouse on a desktop; a release build never does.
 
 const TouchButton := preload("res://scripts/touch_button.gd")
 
-@export var always_show := true
 @export var button_radius := 90.0
 @export var margin := 48.0
 
@@ -17,7 +16,7 @@ var _pause: TouchScreenButton
 
 func _ready() -> void:
 	layer = 100
-	visible = always_show or _is_touch_device()
+	visible = should_show(_is_touch_device(), OS.is_debug_build())
 	_left = _make(TouchButton.Kind.LEFT, "move_left", button_radius)
 	_right = _make(TouchButton.Kind.RIGHT, "move_right", button_radius)
 	_jump = _make(TouchButton.Kind.JUMP, "jump", button_radius * 1.25)
@@ -26,6 +25,11 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	get_viewport().size_changed.connect(_layout)
 	_layout()
+
+
+## Whether the buttons show: on a touch device, and also in any debug build.
+static func should_show(touch_device: bool, debug_build: bool) -> bool:
+	return touch_device or debug_build
 
 
 ## A touch screen is present. In a web build the browser is asked directly, because Godot does not always report a

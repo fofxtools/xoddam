@@ -39,6 +39,7 @@ const TESTS := [
 	"test_camera_zoom_is_applied",
 	"test_camera_ignores_jumps",
 	"test_camera_look_ahead",
+	"test_touch_buttons_show_only_where_needed",
 	"test_effects_burst_and_clean_up",
 	"test_player_poses",
 	"test_level_maps_are_valid",
@@ -281,20 +282,20 @@ func test_spikes_use_a_small_hurt_box() -> bool:
 	check(level._spikes.size() > 0, "level 1 has spikes to test with")
 	var spike: Area2D = level._spikes[0]
 	var shape_node := spike.get_child(0) as CollisionShape2D
-	var centre_x: float = spike.global_position.x + shape_node.position.x
+	var center_x: float = spike.global_position.x + shape_node.position.x
 	var feet_y: float = spike.global_position.y + 64.0  # the bottom of the spike's tile: standing on the floor
 	var p: CharacterBody2D = level.player
 	for rex in [false, true]:
 		gs.is_trex = rex
 		p.apply_form()
 		var who := "T-Rex" if rex else "boy"
-		p.global_position = Vector2(centre_x + 40.0, feet_y)
-		check(level._spike_hurts(spike), "the %s 40 px from a spike's centre is hurt" % who)
-		p.global_position = Vector2(centre_x + 60.0, feet_y)
-		check(not level._spike_hurts(spike), "the %s 60 px from a spike's centre is not hurt" % who)
-		p.global_position = Vector2(centre_x - 60.0, feet_y)
+		p.global_position = Vector2(center_x + 40.0, feet_y)
+		check(level._spike_hurts(spike), "the %s 40 px from a spike's center is hurt" % who)
+		p.global_position = Vector2(center_x + 60.0, feet_y)
+		check(not level._spike_hurts(spike), "the %s 60 px from a spike's center is not hurt" % who)
+		p.global_position = Vector2(center_x - 60.0, feet_y)
 		check(not level._spike_hurts(spike), "the %s 60 px away on the other side is not hurt" % who)
-		p.global_position = Vector2(centre_x, feet_y - 300.0)
+		p.global_position = Vector2(center_x, feet_y - 300.0)
 		check(not level._spike_hurts(spike), "the %s well above the spike is not hurt" % who)
 	gs.is_trex = true
 	p.apply_form()
@@ -435,7 +436,7 @@ func test_item_block_gives_the_egg() -> bool:
 	check(eggs.size() == 1, "the block released exactly one egg")
 	await _frames(90)
 	check(eggs[0].is_on_floor(), "the released egg comes to rest")
-	# The egg's centre rests about 24 px above the floor (its radius). On top of the block it would be far higher.
+	# The egg's center rests about 24 px above the floor (its radius). On top of the block it would be far higher.
 	check(absf(eggs[0].global_position.y + 24.0) < 8.0, "the egg lands on the ground, not stuck on top of the block")
 	# touching the egg turns the boy into the T-Rex
 	check(not gs.is_trex, "the player is still the boy before taking the egg")
@@ -782,6 +783,14 @@ func test_camera_ignores_jumps() -> bool:
 	return true
 
 
+func test_touch_buttons_show_only_where_needed() -> bool:
+	var controls: GDScript = load("res://scripts/touch_controls.gd")
+	check(controls.should_show(true, false), "a release build shows the touch buttons on a touch device")
+	check(not controls.should_show(false, false), "a release build hides them on a desktop")
+	check(controls.should_show(false, true), "a debug build shows them on a desktop, to try with the mouse")
+	return true
+
+
 func test_camera_look_ahead() -> bool:
 	await _make_world()
 	var cam: Camera2D = player.get_node("Camera2D")
@@ -795,7 +804,7 @@ func test_camera_look_ahead() -> bool:
 	check(cam.global_position.x < player.global_position.x - 150.0, "the camera leans the other way when facing left")
 	gs.camera_look_ahead = false
 	await _frames(240)
-	check(absf(cam.global_position.x - player.global_position.x) < 20.0, "with look-ahead off the camera is centred on the player")
+	check(absf(cam.global_position.x - player.global_position.x) < 20.0, "with look-ahead off the camera is centered on the player")
 	gs.camera_look_ahead = true
 	return true
 

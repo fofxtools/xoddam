@@ -32,7 +32,7 @@
   "note": "test room only"
  },
  "armored": {
-  "source": "A_enemies/armoured_alien_s11.png",
+  "source": "A_enemies/armored_alien_s11.png",
   "note": "spikes always out; test room only"
  },
  "shell": {

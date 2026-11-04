@@ -8,7 +8,7 @@
 
 A small side-scrolling platformer for a boy to play on a **tablet**, also playable with a keyboard.
 Inspiration: Super Mario World, Super Mario Bros. Wonder.
-Goal: a "poor man's Wonder": modern HD, soft, colourful, rubbery 2D. **Not pixel art.**
+Goal: a "poor man's Wonder": modern HD, soft, colorful, rubbery 2D. **Not pixel art.**
 
 ## Principles
 - Touch is the primary input; keyboard is a first-class second input. Both drive the same input actions.
@@ -48,11 +48,11 @@ Goal: a "poor man's Wonder": modern HD, soft, colourful, rubbery 2D. **Not pixel
 - Pick one direction. Write `docs/art-bible.md`: palette, outline, lighting, the style suffix, winning seeds.
 - Done when: you approve a one-page style board.
 
-### 2. Greybox vertical slice with controls  (no final art)
+### 2. Graybox vertical slice with controls  (no final art)
 - Player: run, jump with coyote time, jump buffer, variable height, heavier fall.
 - **On-screen touch buttons built now**, wired to the input actions, tested next to the keyboard from day one. Button visuals light up when their action is pressed by any source (a few lines polling `Input.is_action_pressed`), so keyboard play shows the buttons pressing too.
 - Test touch on desktop with Godot's mouse-to-touch emulation, and on a real tablet via a web or Android build when one is available.
-- One level of coloured placeholder blocks built from an ASCII map in `scripts/level.gd` (switch to TileMapLayer in the art pass if wanted): gaps, one-way platforms, a hazard, a goal flag.
+- One level of colored placeholder blocks built from an ASCII map in `scripts/level.gd` (switch to TileMapLayer in the art pass if wanted): gaps, one-way platforms, a hazard, a goal flag.
 - Camera follow with deadzone, clamped to level bounds. Respawn at level start on death.
 - Done when: the level is fun to run through with boxes alone, by touch and by keyboard.
 
@@ -60,7 +60,7 @@ Goal: a "poor man's Wonder": modern HD, soft, colourful, rubbery 2D. **Not pixel
 - Hearts, lives, coin counter, extra life every 10 coins, T-Rex power-up (one hit turns him back into the boy) and walk-through of the weakest enemy, death, respawn and game-over flow.
 - Large, simple HUD kept clear of the thumb areas.
 - Basic save/load and a title screen with Continue.
-- Done when: all the rules above work on the greybox level.
+- Done when: all the rules above work on the graybox level.
 
 ### 4. Art pass on the slice
 - Generate on a flat background, cut out to transparent, check alpha, normalise size and pivots.

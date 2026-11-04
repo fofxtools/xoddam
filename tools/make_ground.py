@@ -4,7 +4,7 @@ Run from the project folder: python tools/make_ground.py
 Per look:
   top.png       the ground's top edge (grass, curb, hull plating...), mirrored once so it repeats sideways with no seam;
                 its lower part fades out so it blends into the fill underneath
-  fill.png      the material under the surface, mirrored in both directions so it repeats seamlessly, with its colour
+  fill.png      the material under the surface, mirrored in both directions so it repeats seamlessly, with its color
                 nudged toward the top strip so the two meet without a visible line
   platform.png  a floating one-way platform, cut out; the game stretches its middle (9-slice) to any length
 Everything is stored at 2x its on-screen size (the game draws it at scale 0.5)."""
@@ -15,7 +15,7 @@ import numpy as np
 from PIL import Image
 
 sys.path.insert(0, str(Path(__file__).parent))
-from cutout import cutout, cutout_grey
+from cutout import cutout, cutout_gray
 
 SRC = Path("tmp/concepts")
 OUT = Path("art/ground")
@@ -57,7 +57,7 @@ for look, (top_path, top_h, fill_path, fill_tile, plat_path, plat_h) in LOOKS.it
     folder.mkdir(parents=True, exist_ok=True)
 
     # top strip
-    top = cutout_grey(Image.open(SRC / top_path), v_min=196)
+    top = cutout_gray(Image.open(SRC / top_path), v_min=196)
     k = 2.0 * top_h / top.height
     top = top.resize((round(top.width * k), round(top.height * k)), Image.LANCZOS)
     if look in SOFTEN_GREEN:
@@ -76,7 +76,7 @@ for look, (top_path, top_h, fill_path, fill_tile, plat_path, plat_h) in LOOKS.it
         a[fade_from:, :, 3] = (a[fade_from:, :, 3] * ramp[:, None]).astype(np.uint8)
     mirrored(Image.fromarray(a, "RGBA")).save(folder / "top.png")
 
-    # fill, colour-matched to the strip's lower part
+    # fill, color-matched to the strip's lower part
     fill = Image.open(SRC / fill_path).convert("RGBA")
     gain = np.ones(3) if look in KEEP_TOP else np.clip(top_color / np.maximum(mean_color(fill, slice(None)), 1.0), 0.8, 1.25)
     f = np.asarray(fill).astype(np.float32)
@@ -87,7 +87,7 @@ for look, (top_path, top_h, fill_path, fill_tile, plat_path, plat_h) in LOOKS.it
     fill.resize((side, side), Image.LANCZOS).save(folder / "fill.png")
 
     # platform
-    plat = cutout_grey(Image.open(SRC / plat_path), v_min=196)
+    plat = cutout_gray(Image.open(SRC / plat_path), v_min=196)
     k = 2.0 * plat_h / plat.height
     plat = plat.resize((round(plat.width * k), round(plat.height * k)), Image.LANCZOS)
     plat.save(folder / "platform.png")

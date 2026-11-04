@@ -18,7 +18,7 @@ Winners later get copied to `art/concepts/` and recorded in `docs/art-bible.md`.
 | Group | What | Prompt styles | Seeds | Images |
 |-------|------|---------------|-------|--------|
 | A0 walker | 12 alien types (done) | plain, described, retro | 11, 22, 33, 44 | 144 |
-| A enemies | flyer, swooper, hopper, chaser, armoured, urchin, shell, turret, popper, heavy, two bosses | alien, ref, robot | 11 to 44 | 144 |
+| A enemies | flyer, swooper, hopper, chaser, armored, urchin, shell, turret, popper, heavy, two bosses | alien, ref, robot | 11 to 44 | 144 |
 | B puppies | idle, scared, happy, empty cage, puppy in cage, group | plain, described | 11 to 44 | 48 |
 | C objects | item block (full and empty), heart, spikes, boss gate, coin, egg | a, b | 11 to 44 | 56 |
 | D invasion | saucer, laser, alien commander, wide intro scene | 2 each, 3 scene ideas | 11 to 44 | 36 |
@@ -46,7 +46,7 @@ Flyer is redone as **drones** (`H_flyer_drones`). Heart: plain, no sparkles (`H_
 ## Rule: horns and spikes mean spikes
 
 Only enemies that really have spikes may show spikes or horns:
-- **Armoured:** spikes always out, stomp hurts.
+- **Armored:** spikes always out, stomp hurts.
 - **Urchin:** spikes out 1.5 s, in 3 s; stompable only while in.
 - **Spiky boss:** same cycle as the urchin.
 Everything else (walker, flyer/drone, swooper, hopper, chaser, shell, turret, popper, heavy, chaser boss) is smooth: no spikes, no horns. The chaser boss chosen so far has bull horns, so it is redone horn-free (`H_spike_states`).
@@ -67,15 +67,15 @@ A background image is never as wide as the level. It is a parallax layer: a wide
 2. **Far and mid strips:** wide strips (1920x512) generated on a flat **green** background (**magenta** where the art is green, as in the outdoors level), keyed to transparent, trimmed to the content, and made to tile by cross-fading the right edge into the left. Prompts must say "flat colors, no haze, no glow, no gradient" or the key leaves a pink or green halo.
 3. **Near strip:** the same, low and quiet so coins and enemies stay readable.
 4. **Set pieces:** one big keyed picture (the mothership) placed at a spot in the level that drifts past slowly.
-5. **Readability:** far layers are tinted toward the sky colour and made lighter, near layers darkened, so the playfield stands out.
+5. **Readability:** far layers are tinted toward the sky color and made lighter, near layers darkened, so the playfield stands out.
 
 Tools: `tmp/concepts/layer_tool.py` (key, trim, tile), `scripts/backdrop.gd` (layers, speeds, scale, tint, set pieces; presets `outdoors`, `city2`, `exterior2`, `interior2`), Debug Level Select has a button for each. Test images are in `art/test_backdrops/`.
 
 Results: **outdoors, ruined city and mothership exterior look good.** Interior is acceptable but not yet "massive".
 
 **Now built on Godot's `Parallax2D` nodes** (checked against the installed 4.7.2: same properties as 4.3, `scroll_scale`, `repeat_size`, `repeat_times`; searching turned up no 4.7-specific change to the node). Notes from using it:
-- Parallax2D moves a layer by the camera's **left edge** times (1 - scroll_scale). For a one-off piece to be centred on screen when the camera's left edge is `L`, give its sprite `x = 960 - width/2 + L * scroll_scale`. (My first guess used the camera's centre and was off by hundreds of pixels; checked by reading the sprite's position in the running game.) Repeating layers do not care.
-- The mothership exterior now starts with the ship's nose peeking in at the right and ends with the whole ship centred above the goal.
+- Parallax2D moves a layer by the camera's **left edge** times (1 - scroll_scale). For a one-off piece to be centered on screen when the camera's left edge is `L`, give its sprite `x = 960 - width/2 + L * scroll_scale`. (My first guess used the camera's center and was off by hundreds of pixels; checked by reading the sprite's position in the running game.) Repeating layers do not care.
+- The mothership exterior now starts with the ship's nose peeking in at the right and ends with the whole ship centered above the goal.
 - `repeat_size` ignores scale, so I give the sprite its scale and set `repeat_size` to the scaled width in pixels.
 - The camera has smoothing, so wait a second after teleporting before judging a screenshot.
 - Seams: cross-fading the ends ghosts objects at the join, so every strip (and sky) is now **mirrored**: the image plus its flipped copy, which tiles perfectly. The period doubles to about 3800 px.

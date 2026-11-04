@@ -12,9 +12,9 @@ Concept images: `art/concepts/`. Generated with genimg (flux-2-klein-9b-Q4_K_M).
 ## Visual system
 - Shape language: round, soft, friendly. Big heads and hands, short limbs. No sharp or scary shapes.
 - Silhouette: each character reads as a distinct blob at 64 px: boy (tall, hair streaming), T-Rex (wide, long tail), enemy (round).
-- Palette roles: saturated greens and sky blues for the world; warm colours for the hero and pickups; purple/brown for enemies; gold for coins.
+- Palette roles: saturated greens and sky blues for the world; warm colors for the hero and pickups; purple/brown for enemies; gold for coins.
 - Edge: thick, clean dark outline (dark brown/dark purple, not pure black).
-- Lighting: soft cel shading, light from upper left, one highlight and one shade tone per colour.
+- Lighting: soft cel shading, light from upper left, one highlight and one shade tone per color.
 - Detail density: low; clear shapes over texture.
 - Exclusions: pixel art, realism, text, scary or violent looks, photographic textures.
 
@@ -37,7 +37,7 @@ Concept images: `art/concepts/`. Generated with genimg (flux-2-klein-9b-Q4_K_M).
 ## Approval
 - Approved: boy hero = `hero_s33.png`; weakest enemy = `enemy_blob_s22.png`.
 - T-Rex form: `trex_mean_s44.png` (no hair, bare clawed feet, slightly mean grin). Other round 2 candidates (`trex_mean_*`, `trex_mean_mane_*`) are rejected.
-- Hero + T-Rex link: no shared hair/shoes, so the transformation needs a visual bridge (effect, matching colour accent).
+- Hero + T-Rex link: no shared hair/shoes, so the transformation needs a visual bridge (effect, matching color accent).
 - Owner/date: TBD.
 
 ## Round 2 decisions (story: aliens invade and cage the puppies)
@@ -69,4 +69,4 @@ Round 1 enemy picks (purple blob, beetle) are retired.
 Pictures in `art/sprites/enemies/`, built by `tools/make_enemy_sprites.py` from the picked cut-outs. One picture per enemy plus code motion (waddle, rock, squash); no separate walk frames yet. The spiky boss body is the retracted-spikes version (`boss_in`), so its remaining small head and back nubs are always visible.
 
 ## Ground (in the game)
-Pictures in `art/ground/<look>/` (top.png, fill.png, platform.png), built by `tools/make_ground.py` from `tmp/concepts/G2_ground` and `G3_plat`. Top strips and fills are mirrored so they repeat without a seam; the fill is colour-matched to the strip; platforms are 9-slice stretched. A look is chosen per level by `Backdrop.kind_for_level`.
+Pictures in `art/ground/<look>/` (top.png, fill.png, platform.png), built by `tools/make_ground.py` from `tmp/concepts/G2_ground` and `G3_plat`. Top strips and fills are mirrored so they repeat without a seam; the fill is color-matched to the strip; platforms are 9-slice stretched. A look is chosen per level by `Backdrop.kind_for_level`.

@@ -1,28 +1,28 @@
 # Credits
 
 Everything in this project that is not listed here was made for it. This file says where the rest came from and
-under which licence, so that anyone can check. The project's own code is MIT ([LICENSE](LICENSE)); its artwork is not
-covered by that licence (see the README).
+under which license, so that anyone can check. Everything we made (code, pictures, logo, generated sound effects,
+documents) is MIT ([LICENSE](LICENSE)); the third-party files below keep their own licenses.
 
 ## Engine and tools
 
-| What | Used for | Licence |
+| What | Used for | License |
 |---|---|---|
 | [Godot Engine](https://godotengine.org/) 4.7.2 | the game | MIT |
 | [Godot AI](https://github.com/hi-godot/godot-ai) plugin (`addons/godot_ai/`) | a development helper (it lets an AI assistant run the editor); its autoload is removed from exported games | MIT (`addons/godot_ai/LICENSE`) |
 | [Astro](https://astro.build/) and `@astrojs/sitemap` | the website in `site/` | MIT |
 | [Pillow](https://python-pillow.org/) | the picture tools in `tools/` | MIT-CMU (HPND) |
-| Eclipse Temurin JDK 17 and the Android SDK | building the Android app (build tools only; neither is shipped in the game) | GPL-2.0 with Classpath Exception (JDK); Android SDK licence (Google) |
+| Eclipse Temurin JDK 17 and the Android SDK | building the Android app (build tools only; neither is shipped in the game) | GPL-2.0 with Classpath Exception (JDK); Android SDK license (Google) |
 
 ## Font
 
 - **Fredoka** (variable font) by The Fredoka Project Authors, SIL Open Font License 1.1.
-  Files and licence text: `assets/fonts/`. The website serves the same font from the `@fontsource-variable/fredoka`
+  Files and license text: `assets/fonts/`. The website serves the same font from the `@fontsource-variable/fredoka`
   package (also OFL).
 
 ## Music
 
-All from [OpenGameArt.org](https://opengameart.org/), CC0 (public domain). Checked on each page's licence field.
+All from [OpenGameArt.org](https://opengameart.org/), CC0 (public domain). Checked on each page's license field.
 
 | Track | Where it plays | Author | Page |
 |---|---|---|---|

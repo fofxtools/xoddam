@@ -27,7 +27,7 @@ Rule of thumb: **UPPERCASE = unique things (at most one per level), lowercase = 
 Enemies stand on the bottom of their cell. Flyers fly around the cell they are placed in.
 The boy defeats any stompable enemy with one stomp. "T-Rex" says what happens when the T-Rex touches it.
 
-| Char | Type | Behaviour | Stomp | T-Rex touch |
+| Char | Type | Behavior | Stomp | T-Rex touch |
 |------|------|-----------|-------|-------------|
 | `w` | walker | walks a short patrol, turns at walls and ledges | kills | defeats it |
 | `f` | flyer | flies back and forth in a wave | kills | defeats it |

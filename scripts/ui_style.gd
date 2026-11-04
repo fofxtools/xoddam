@@ -84,7 +84,7 @@ static func card() -> PanelContainer:
 	return c
 
 
-## The dimmed background, centred card and vertical box that the overlays share (Help, Sound, the "are you sure?" card
+## The dimmed background, centered card and vertical box that the overlays share (Help, Sound, the "are you sure?" card
 ## and the pause menu). Adds them to `parent` and returns the box to fill with a title, text and buttons.
 static func overlay(parent: Control, separation: int, dim_color := Color(0.06, 0.1, 0.2, 0.8)) -> VBoxContainer:
 	var dim := ColorRect.new()

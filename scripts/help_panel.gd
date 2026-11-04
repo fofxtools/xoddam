@@ -33,7 +33,7 @@ func _ready() -> void:
 ## [picture, words] for each tip.
 func _tips() -> Array:
 	return [
-		["game/cage_closed.png", "Run and jump to the cage at the end and free the puppy!"],
+		["game/cage_closed.png", "Run and jump (up arrow) to the cage at the end and free the puppy!"],
 		["enemies/walker.png", "Jump on aliens to squash them. An alien that bumps you costs a heart."],
 		["game/egg.png", "Bump the ? block from below to get an egg, and grab it to turn into a T-Rex! The T-Rex defeats small aliens just by touching them, and can take one hit."],
 		["game/coin.png", "Every %d coins you collect refill all your hearts, and every %d give an extra life!" % [GameState.COINS_PER_HEAL, GameState.COINS_PER_LIFE]],

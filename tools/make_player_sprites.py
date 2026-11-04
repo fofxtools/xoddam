@@ -8,8 +8,8 @@ from PIL import Image
 sys.path.insert(0, str(Path(__file__).parent))
 from cutout import cutout
 
-def centre_on_mass(img):
-    """Pad the picture so the weight of the figure (its torso, not a stretched leg or tail) is at the centre."""
+def center_on_mass(img):
+    """Pad the picture so the weight of the figure (its torso, not a stretched leg or tail) is at the center."""
     import numpy as np
     a = np.asarray(img)[..., 3] > 128
     xs = np.nonzero(a.any(axis=0))[0]
@@ -48,7 +48,7 @@ for name, (idle_height, poses) in CHARACTERS.items():
     for pose, img in cut.items():
         sc = scales[pose]
         img = img.resize((round(img.width * sc), round(img.height * sc)), Image.LANCZOS)
-        img = centre_on_mass(img)
+        img = center_on_mass(img)
         img.save(OUT / f"{name}_{pose}.png")
         print(name, pose, img.size)
 

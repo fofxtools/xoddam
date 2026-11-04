@@ -1,5 +1,5 @@
 extends Node2D
-## Greybox level built from an ASCII map (levels/*.txt; the legend is in levels/README.md).
+## Graybox level built from an ASCII map (levels/*.txt; the legend is in levels/README.md).
 
 const TILE := 64
 const Hud := preload("res://scripts/hud.gd")
@@ -262,7 +262,7 @@ func _level_look() -> String:
 	return Backdrop.kind_for_level(number if number >= 0 else GameState.level_index)
 
 
-## A picture from art/sprites/game/ (stored at 2x, drawn at half size). `from_feet`: the bottom centre is the origin.
+## A picture from art/sprites/game/ (stored at 2x, drawn at half size). `from_feet`: the bottom center is the origin.
 func _art(sprite_name: String, from_feet := false) -> Sprite2D:
 	var s := Sprite2D.new()
 	s.texture = load("res://art/sprites/game/" + sprite_name + ".png")
@@ -278,7 +278,7 @@ func _ground_texture(file: String) -> Texture2D:
 
 
 ## A picture that repeats over a rectangle (stored at 2x, drawn at half size). Its repeat is lined up with the world,
-## so neighbouring blocks continue the same pattern.
+## so neighboring blocks continue the same pattern.
 func _tiled(tex: Texture2D, world_pos: Vector2, size: Vector2, repeat_y: bool) -> Sprite2D:
 	var sp := Sprite2D.new()
 	sp.texture = tex

@@ -23,7 +23,7 @@ mkdirSync(target, { recursive: true });
 cpSync(source, target, { recursive: true, filter: (file) => !/\.(tmp|import)$/.test(file) });
 
 // Godot's PWA manifest is bare. Add what Chrome wants for an installable app: a 192 px icon (Godot has no option for
-// that size), a short name, a scope and colours. (Only when the export is a PWA export.)
+// that size), a short name, a scope and colors. (Only when the export is a PWA export.)
 const manifestPath = join(target, 'index.manifest.json');
 if (existsSync(manifestPath)) {
   const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));

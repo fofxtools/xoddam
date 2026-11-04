@@ -1,5 +1,5 @@
 extends CharacterBody2D
-## Greybox platformer controller. Feel is derived from jump height + time to apex.
+## Graybox platformer controller. Feel is derived from jump height + time to apex.
 ## Hearts, lives and the T-Rex form live in GameState; this node reacts to them.
 
 signal died
@@ -10,7 +10,7 @@ const BOY_SIZE := Vector2(64, 96)
 ## blocks, which leave 3 tiles (192 px).
 const REX_SIZE := Vector2(160, 176)
 const ART_DIR := "res://art/sprites/player/"
-## The run cycle has 4 pictures; the next one shows after the player has travelled this far, so the feet keep
+## The run cycle has 4 pictures; the next one shows after the player has traveled this far, so the feet keep
 ## up with the ground (slower running means slower legs) and standing still shows no walking.
 const RUN_FRAMES := 4
 const RUN_STRIDE := 62.0
@@ -122,7 +122,7 @@ func _has_run_frames(form: String) -> bool:
 	return _run_frames[form]
 
 
-## Swap the picture (cached) and stand it on the feet: the sprite's bottom centre sits on the player's origin.
+## Swap the picture (cached) and stand it on the feet: the sprite's bottom center sits on the player's origin.
 func _show_pose(pose: String) -> void:
 	if pose == _pose:
 		return

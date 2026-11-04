@@ -10,16 +10,16 @@ from PIL import Image
 
 
 def key_color(img: Image.Image, color: str = "green", lo: float = 70.0, hi: float = 200.0) -> Image.Image:
-    """Alpha from how close a pixel is to the key colour (green: green far above red and blue; magenta: the reverse)."""
+    """Alpha from how close a pixel is to the key color (green: green far above red and blue; magenta: the reverse)."""
     a = np.asarray(img.convert("RGB")).astype(np.float32)
     r, g, b = a[..., 0], a[..., 1], a[..., 2]
     if color == "green":
-        magenta = g - np.maximum(r, b)  # about 255 for the key colour
+        magenta = g - np.maximum(r, b)  # about 255 for the key color
         r, g, b = r, g, b
     else:
         magenta = np.minimum(r, b) - g
     alpha = 1.0 - np.clip((magenta - lo) / (hi - lo), 0.0, 1.0)
-    # A key colour that is not perfectly even leaves a faint see-through haze (alpha 4-25%) over the empty parts of a
+    # A key color that is not perfectly even leaves a faint see-through haze (alpha 4-25%) over the empty parts of a
     # layer; its rectangle edges showed as horizontal bands across the sky in game. Anything this faint is nothing.
     alpha = np.where(alpha < 0.27, 0.0, alpha)
     # despill: bring red and blue down to green's level wherever they stick out above it a lot
@@ -45,7 +45,7 @@ def make_tileable(img: Image.Image, overlap_fraction: float) -> Image.Image:
     t = np.linspace(0.0, 1.0, o, dtype=np.float32)[None, :, None]
     tail = a[:, w - o:, :]
     head = a[:, :o, :]
-    # premultiply so transparent pixels do not bleed colour
+    # premultiply so transparent pixels do not bleed color
     def pre(x): return np.dstack([x[..., :3] * (x[..., 3:4] / 255.0), x[..., 3:4]])
     mixed = pre(tail) * (1.0 - t) + pre(head) * t
     alpha = mixed[..., 3:4]

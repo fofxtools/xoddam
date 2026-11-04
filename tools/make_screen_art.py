@@ -7,7 +7,7 @@ import numpy as np
 from PIL import Image, ImageFilter
 
 sys.path.insert(0, str(Path(__file__).parent))
-from cutout import cutout_grey
+from cutout import cutout_gray
 
 FINAL = Path("art/concepts/final")
 CON = Path("tmp/concepts")
@@ -25,11 +25,11 @@ for name, src in {"title": FINAL / "title_backdrop.png", "intro": FINAL / "intro
     img.save(OUT / f"{name}.jpg", quality=90)
     print(name)
 
-# the title logo, cut out of its grey background
-# the logo is only yellow and brown, so every grey pixel is background, including grey trapped between letters
+# the title logo, cut out of its gray background
+# the logo is only yellow and brown, so every gray pixel is background, including gray trapped between letters
 raw = np.asarray(Image.open(FINAL / "logo_full.png").convert("RGB")).astype(np.int16)
-grey = ((raw.max(axis=2) - raw.min(axis=2)) < 22) & (raw.max(axis=2) > 150)
-alpha = Image.fromarray(((~grey) * 255).astype(np.uint8)).filter(ImageFilter.MinFilter(3)).filter(ImageFilter.GaussianBlur(0.8))
+gray = ((raw.max(axis=2) - raw.min(axis=2)) < 22) & (raw.max(axis=2) > 150)
+alpha = Image.fromarray(((~gray) * 255).astype(np.uint8)).filter(ImageFilter.MinFilter(3)).filter(ImageFilter.GaussianBlur(0.8))
 logo = Image.open(FINAL / "logo_full.png").convert("RGBA")
 logo.putalpha(alpha)
 logo = logo.crop(alpha.point(lambda v: 255 if v > 40 else 0).getbbox())

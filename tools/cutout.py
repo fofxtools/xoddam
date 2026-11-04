@@ -1,4 +1,4 @@
-"""Cut a sprite out of its plain background: flood-fill from the border over pixels close to the border colour,
+"""Cut a sprite out of its plain background: flood-fill from the border over pixels close to the border color,
 soften the edge, trim to the content. usage: python cutout.py in.png out.png [--key green] [--tol 28]"""
 import argparse
 import numpy as np
@@ -42,10 +42,10 @@ if __name__ == "__main__":
     r = cutout(Image.open(a.src), a.tol, a.key == "green"); r.save(a.dst); print(a.dst, r.size)
 
 
-def cutout_grey(img, sat_max=0.06, v_min=115, v_max=250):
-    """Cut out a sprite drawn on a plain light-grey background, including its ground shadow and the gaps between legs.
-    Flood-fills from the border over every unsaturated mid-to-light grey pixel (background and shadow alike); the sprite's
-    dark outline stops the fill, so grey parts inside the outline are kept."""
+def cutout_gray(img, sat_max=0.06, v_min=115, v_max=250):
+    """Cut out a sprite drawn on a plain light-gray background, including its ground shadow and the gaps between legs.
+    Flood-fills from the border over every unsaturated mid-to-light gray pixel (background and shadow alike); the sprite's
+    dark outline stops the fill, so gray parts inside the outline are kept."""
     a = np.asarray(img.convert("RGB")).astype(np.int16)
     h, w, _ = a.shape
     mx, mn = a.max(axis=2), a.min(axis=2)

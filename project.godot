@@ -35,6 +35,10 @@ window/handheld/orientation=4
 
 enabled=PackedStringArray("res://addons/godot_ai/plugin.cfg")
 
+[gui]
+
+theme/custom_font="res://assets/fonts/fredoka_bold.tres"
+
 [input]
 
 move_left={
@@ -69,10 +73,6 @@ pointing/emulate_touch_from_mouse=true
 [physics]
 
 3d/physics_engine="Jolt Physics"
-
-[gui]
-
-theme/custom_font="res://assets/fonts/fredoka_bold.tres"
 
 [rendering]
 

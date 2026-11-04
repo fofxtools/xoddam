@@ -4,22 +4,30 @@ The export preset is `Web` in `export_presets.cfg`. It writes to `build/web/` (g
 `art/concepts`, `tmp`, `tools`, `docs` and `tests`, and adds the level maps (`levels/*.txt`), which Godot does not
 export by itself because they are plain text files. Threads are off, so any plain web server works (no special headers).
 
-## Export
+## Export and put it on xoddam.com
 
 Needs the 4.7.2 web export templates (installed once in `%APPDATA%\Godot\export_templates\4.7.2.stable\`).
-From the project folder. Windows PowerShell (`$godot` is the path of Godot's console exe, as in
-[tests/README.md](../tests/README.md)):
+From the project folder, in Windows PowerShell (`$godot` is the path of Godot's console exe; this one assumes it is in
+`storage\Godot\`, which git ignores, as in [tests/README.md](../tests/README.md). Use your own path if it is elsewhere):
 
 ```powershell
-$godot = "C:\path\to\Godot_v4.7.2-stable_win64_console.exe"
+$godot = ".\storage\Godot\Godot_v4.7.2-stable_win64_console.exe"
 & $godot --headless --path . --export-release "Web" build/web/index.html
+python tools/export_android.py
+python site/scripts/deploy.py
 ```
 
-Linux or Mac: the same with `godot` instead of `& $godot`.
+- **Line 2** exports the game to `build/web/`. That is all you need to try it locally (see "Try it on this PC").
+  Linux or Mac: the same with `godot` instead of `& $godot`.
+- **Line 3** rebuilds the Android app. Skip it when the app does not need to match the game; the deploy then uploads
+  the app as it already is. Raise `version/code` first (see [android-build.md](android-build.md)).
+- **Line 4** builds the website, copies the game into `/play/` and the Android app into `/download/` (if one is built),
+  uploads it, removes stale files and checks the live pages. Add `--dry-run` to see what it would do without changing
+  anything. Options: [../site/README.md](../site/README.md). Hosting details: [hosting.md](hosting.md).
 
 Use `--export-debug` instead for a build with "Debug Level Select" on the title screen (handy on a phone). The live
-site always gets `--export-release`. The result is about 56 MB of game data plus about 38 MB of engine. The Web preset also puts the
-Google Analytics tag into the game page (its `html/head_include` option).
+site always gets `--export-release`. The result is about 56 MB of game data plus about 38 MB of engine. The Web preset
+also puts the Google Analytics tag into the game page (its `html/head_include` option).
 
 ## Installing it from the browser (PWA)
 
@@ -28,7 +36,7 @@ screen from the browser (Chrome: menu > Install app or Add to Home screen; iPhon
 Add to Home Screen). It then opens full screen, in landscape, with the game's icon, and works offline once loaded.
 
 - The export adds `index.manifest.json`, the icons (`art/icons/pwa-*.png`, listed in the preset), an offline page and
-  a service worker. `site/scripts/copy-game.mjs` completes the manifest (a 192 px icon, short name, scope, colours)
+  a service worker. `site/scripts/copy-game.mjs` completes the manifest (a 192 px icon, short name, scope, colors)
   when it copies the game into `dist/play`.
 - `ensure_cross_origin_isolation_headers` must stay **off**: with it on, the service worker adds headers that block
   the Google Analytics script.
@@ -58,11 +66,6 @@ does not crackle in single-threaded builds). Rules we follow so that works:
   click or key press (imitating the browser rule): after the first click or key press the music started within 0.1 s,
   including on the intro screen.
 
-## Put it on xoddam.com
-
-Export a release build as above, then see `../site/README.md`: `python site/scripts/deploy.py` builds the website,
-copies the game into `/play/` and uploads everything. Hosting details are in `hosting.md`.
-
 ## Try it on this PC
 
 ```
@@ -83,5 +86,6 @@ Then open http://127.0.0.1:8060/index.html. The first load takes a few seconds.
 
 ## Touch buttons
 
-`scripts/touch_controls.gd` has `always_show` on, so the buttons show everywhere. Turn it off for a release: they
-then show only where the device has a touch screen (in a browser, the browser is asked directly).
+`scripts/touch_controls.gd` shows the buttons only where the device has a touch screen (in a browser, the browser is
+asked directly). Debug runs always show them, so they can be tried with the mouse; the web and Android exports are
+release builds, so a desktop player does not see them.

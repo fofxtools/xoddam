@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.1.6] - 2026-11-04
+
+A tidy-up after the first release: one license for everything we made, touch buttons only where there is a touch screen, American spelling, and clearer build notes.
+
+### Changed
+- **License:** everything we made (code, pictures, logo, generated sound effects, documents) is now under the MIT license, not only the code. Third-party files keep their own licenses (`CREDITS.md`).
+- **Touch buttons only on touch devices:** a desktop player no longer sees them in the web game. Debug runs (the editor, a debug export) still always show them, so they can be tried with the mouse.
+- **Help and website say the up arrow jumps.**
+- **American spelling** in the docs, code comments and tool names (color, center, gray, graybox, armored).
+- **Android app is version 0.1.6** (version code 2), so tablets with the first app can update over it.
+- **Build notes:** `docs/web-build.md` has one command list for the whole release (export the web game, build the Android app, deploy). Godot's exe lives in `storage/Godot/` (git ignores it). The Android build now says what to check when Godot's Android SDK or Java paths are wrong.
+- **Godot AI plugin** (a helper for the editor, not part of the game) updated from 4.3.1 to 4.4.1.
+
 ## [0.1.5] - 2026-11-04
 
 The game is now on the web at https://xoddam.com, installable on phones and tablets, and has an Android app. It also has real screens, ground, sound and a steadier camera.
@@ -34,10 +47,10 @@ The game is now on the web at https://xoddam.com, installable on phones and tabl
 
 ## [0.1.4] - 2026-11-02
 
-The characters, enemies and props now use real art instead of coloured boxes. Ground and platforms are still plain.
+The characters, enemies and props now use real art instead of colored boxes. Ground and platforms are still plain.
 
 ### Added
-- **Player art:** the boy and the T-Rex have idle, jump, fall and a 4-picture run cycle, so their legs move. The run follows distance travelled (slower running, slower legs). A lean, a landing squash and a star-burst cloud when the boy and T-Rex swap.
+- **Player art:** the boy and the T-Rex have idle, jump, fall and a 4-picture run cycle, so their legs move. The run follows distance traveled (slower running, slower legs). A lean, a landing squash and a star-burst cloud when the boy and T-Rex swap.
 - **Boy death animation:** he leaps up in surprise, tumbles and drops away (a funny "oops", not scary).
 - **Enemy art:** all 13 enemies have their pictures. They face the way they move; walkers waddle and flyers rock. The chaser, heavy and both bosses have walk or run cycles.
 - **Prop art:** coin, egg, item blocks, spikes, boss gate, caged puppy, HUD hearts, lives and coin icons, and the touch buttons (one round base, one arrow turned for each direction). After a rescue the cage powers down and the freed puppy hops out. The intro and victory screens use the real puppies.
@@ -49,7 +62,7 @@ The characters, enemies and props now use real art instead of coloured boxes. Gr
 - **Soft top on enemies:** grazing the top 40% (at most 90 px) of a stompable enemy never hurts, even on the way up. Jumping at a tall boss from close up used to clip its head corner and hurt; now you land on it and stomp.
 - **Spikes sit on the body:** the urchin's and spiky boss's spikes follow the outline of the picture and grow from behind the armor. The spiky boss is a smooth body.
 - **Puppy ending:** every level ends with the puppy on flat ground and 9 tiles of ground after it, so the jump button never covers the cage.
-- **Coins** are smaller. **Turret** barrel is level. Puppy and egg pictures have no grey ground shadow.
+- **Coins** are smaller. **Turret** barrel is level. Puppy and egg pictures have no gray ground shadow.
 
 ## [0.1.3] - 2026-11-02
 
@@ -65,7 +78,7 @@ Still boxes for characters, but the levels now have real backgrounds and the art
 
 ## [0.1.2] - 2026-11-01
 
-Still plain coloured boxes, but the game now has sound, a story intro and an ending.
+Still plain colored boxes, but the game now has sound, a story intro and an ending.
 
 ### Added
 - **Sound:** effects for jumping, coins, stomps, hits, the egg roar, item block bumps, hearts, rescuing a puppy, game over and menu clicks, plus a different music track for each level. A sound on/off button is on the title screen and in the pause menu, and the choice is remembered.
@@ -78,7 +91,7 @@ Still plain coloured boxes, but the game now has sound, a story intro and an end
 
 ## [0.1.1] - 2026-11-01
 
-Still plain coloured boxes. The story is now in: a boy who turns into a T-Rex and frees caged puppies from aliens.
+Still plain colored boxes. The story is now in: a boy who turns into a T-Rex and frees caged puppies from aliens.
 
 ### Added
 - **Levels 2, 3 and 4** (level 4 is 200 tiles). Freeing the puppy leads straight into the next level.
@@ -99,7 +112,7 @@ Still plain coloured boxes. The story is now in: a boy who turns into a T-Rex an
 
 ## [0.1.0] - 2026-11-01
 
-First playable version. Everything is plain coloured boxes; the real art comes next.
+First playable version. Everything is plain colored boxes; the real art comes next.
 
 ### Added
 - **One level**, 150 tiles long, loaded from a text map (`levels/level_01.txt`). Pits, spikes, one-way platforms, hills, a goal flag.

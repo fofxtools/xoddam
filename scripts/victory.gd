@@ -51,14 +51,14 @@ func _button(text: String) -> Button:
 	return b
 
 
-## Coloured squares drifting down from above the top edge.
+## Colored squares drifting down from above the top edge.
 func _add_confetti(size: Vector2) -> void:
 	var gradient := Gradient.new()
 	gradient.offsets = PackedFloat32Array()
 	gradient.colors = PackedColorArray()
 	for i in CONFETTI_COLORS.size():
 		gradient.add_point(float(i) / (CONFETTI_COLORS.size() - 1), CONFETTI_COLORS[i])
-	# a new Gradient starts with two points; drop them so only our colours remain
+	# a new Gradient starts with two points; drop them so only our colors remain
 	gradient.remove_point(0)
 	gradient.remove_point(0)
 

@@ -80,9 +80,9 @@ func _add_layer(tex: Texture2D, l: Dictionary, scale: float, y_top: float) -> vo
 	add_child(layer)
 
 
-## One picture centred on the screen when the camera is over the spot `piece_at` along the level.
+## One picture centered on the screen when the camera is over the spot `piece_at` along the level.
 ## Parallax2D moves a layer by the camera's left edge times (1 - scroll_scale), so the picture's own x is
-## chosen to land centred when the camera's left edge is where it will be at that spot.
+## chosen to land centered when the camera's left edge is where it will be at that spot.
 func _add_piece(tex: Texture2D, l: Dictionary, scale: float, y_top: float, level_w: float) -> void:
 	var speed: float = l["speed"]
 	var layer := Parallax2D.new()

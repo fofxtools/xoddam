@@ -52,10 +52,11 @@ Linux or Mac (with `godot` on your PATH):
 godot --headless --path . --script res://tests/run_tests.gd
 ```
 
-Windows PowerShell (put the path of your Godot console exe in a variable, once per window):
+Windows PowerShell (put the path of your Godot console exe in a variable, once per window; this one assumes the exe is
+in `storage\Godot\`, a folder git ignores, so use your own path if it is elsewhere):
 
 ```powershell
-$godot = "C:\path\to\Godot_v4.7.2-stable_win64_console.exe"
+$godot = ".\storage\Godot\Godot_v4.7.2-stable_win64_console.exe"
 & $godot --headless --path . --script res://tests/run_tests.gd
 ```
 
@@ -86,7 +87,7 @@ Run these from the project folder. More in [tests/README.md](tests/README.md).
 - [docs/art-bible.md](docs/art-bible.md): the look of the game
 - [docs/PLAN.md](docs/PLAN.md): the original plan
 - [CHANGELOG.md](CHANGELOG.md): what changed, in plain words
-- [CREDITS.md](CREDITS.md): third-party assets and their licences
+- [CREDITS.md](CREDITS.md): third-party assets and their licenses
 
 ## Status
 
@@ -95,11 +96,10 @@ with the game on it. It has been tried in desktop and iPhone browsers. It can be
 "Add to Home screen", and an Android app (APK) can be built and downloaded from the website; neither has been tried on
 a real Android tablet yet.
 
-## Credits and licence
+## Credits and license
 
 Credits are in [CREDITS.md](CREDITS.md). The pictures were made with AI image tools, then cut out and tuned by hand
 and by script. Music and sound effects are free (CC0) files, and the font is open source.
 
-The code is under the [MIT licence](LICENSE). The pictures, logo and other artwork are not covered by it: no licence
-has been chosen for them yet, so all rights to them are reserved. Third-party files keep their own licences (see
-CREDITS.md).
+Everything we made (the code, pictures, logo, generated sound effects and documents) is under the
+[MIT license](LICENSE). Third-party files keep their own licenses (see CREDITS.md).

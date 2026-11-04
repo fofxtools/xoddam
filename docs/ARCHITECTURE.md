@@ -39,7 +39,7 @@ changes `GameState.hearts` and the HUD reads them.
 - **Two forms, one body:** the boy and the T-Rex. `apply_form()` swaps the collision box and the pictures. The
   T-Rex's body is much wider, so ground spikes use a separate boy-sized box (`spike_hurtbox()`).
 - **Pictures** are poses (`boy_idle`, `boy_run1..4`, `rex_air`, ...) swapped by code, plus squash and stretch. The
-  run frame follows the distance travelled, not time.
+  run frame follows the distance traveled, not time.
 - **Camera:** `_update_camera()` follows sideways always, but vertically only the ground level you last stood on
   (jumping does not bob the view), with a small look-ahead toward the way you face. Zoom comes from
   `GameState.camera_zoom`.
@@ -79,7 +79,7 @@ mask 2. Walls and floors are the only things on layer 1.
 There are almost no UI scenes. Screens are built in `_ready` with a shared look from `scripts/ui_style.gd`:
 `backdrop()`, `button()`, `title_label()`, `card()`, `heading()`, `overlay()`. The pause menu, help, sound and
 confirmation panels (`pause_menu.gd`, `help_panel.gd`, `sound_panel.gd`, `confirm_panel.gd`) are overlays that open over
-the current screen, all built on `overlay()` (dimmed background, centred card, a box to fill). The HUD (`hud.gd`) listens to `GameState.changed`. Touch buttons are `touch_controls.gd`.
+the current screen, all built on `overlay()` (dimmed background, centered card, a box to fill). The HUD (`hud.gd`) listens to `GameState.changed`. Touch buttons are `touch_controls.gd`.
 
 ## Art, sound and the tools
 
@@ -101,7 +101,7 @@ the current screen, all built on `overlay()` (dimmed background, centred card, a
 | change a rule (hearts, lives, coins, coins per life) | the constants at the top of `game_state.gd` |
 | change how the player jumps or runs | the `@export` values at the top of `player.gd` |
 | add or change a level | `levels/level_0N.txt` (see `levels/README.md`) |
-| add or tune an enemy | its scene in `scenes/enemies/`, and `enemy.gd` for new behaviour |
+| add or tune an enemy | its scene in `scenes/enemies/`, and `enemy.gd` for new behavior |
 | change a sound or music track | `SFX_FILES` and `LEVEL_MUSIC` in `audio.gd` |
 | change button and card looks | `ui_style.gd` |
 | change the coin sparkle or stomp stars | `effects.gd` (drawn in code, no pictures) |
@@ -120,5 +120,5 @@ the current screen, all built on `overlay()` (dimmed background, centred card, a
   that mention `GameState` or `Audio` must be loaded with `load()`, not `preload()`.
 - **The editor may show "Identifier not found: Audio"** after you edit scripts. It is stale; stop and run the game
   again.
-- **`always_show` in `touch_controls.gd` is on**, so the touch buttons show on every device. Turn it off for a release
-  that should show them only where there is a touch screen.
+- **Touch buttons** show only on devices with a touch screen (the browser is asked in a web build), plus in every debug
+  build so they can be tried with the mouse. A release build on a desktop never shows them.

@@ -2,8 +2,8 @@
 Run from the project folder: python tools/make_enemy_sprites.py
 
 Every picture faces right, has its ground shadow removed, and is stored at 2x its on-screen height (the scene draws it at
-scale 0.5, with the bottom centre on the enemy's origin, which is the middle of its feet). The collision shapes in the
-scenes are untouched: the picture only replaces the coloured boxes.
+scale 0.5, with the bottom center on the enemy's origin, which is the middle of its feet). The collision shapes in the
+scenes are untouched: the picture only replaces the colored boxes.
 Spiky enemies (urchin, boss) get a smooth body picture plus separate spike pieces named Spike1..N, which enemy.gd shows
 and hides on its timer."""
 import math
@@ -15,7 +15,7 @@ import numpy as np
 from PIL import Image
 
 sys.path.insert(0, str(Path(__file__).parent))
-from cutout import cutout, cutout_grey
+from cutout import cutout, cutout_gray
 
 SRC = Path("art/sprites")
 OUT = SRC / "enemies"
@@ -23,21 +23,21 @@ OUT.mkdir(exist_ok=True)
 SCENES = Path("scenes/enemies")
 
 C = Path("tmp/concepts")
-# scene: (standing picture, background "grey" or "green", flip so it faces right, on-screen height in px, walk pictures)
+# scene: (standing picture, background "gray" or "green", flip so it faces right, on-screen height in px, walk pictures)
 # Walk pictures are listed in order: contact, passing, other contact, other passing (a "*" would mean the standing picture). The pictures come from tmp/concepts (picked in earlier rounds); everything faces right after flipping.
 ENEMIES = {
-    "walker": ("A0_walker/green_man_described_s11.png", "grey", False, 64, []),
-    "flyer": ("H_flyer_drones/flyer_drone1_s22.png", "grey", False, 56, []),
-    "swooper": ("A_enemies/swooper_robot_s22.png", "grey", False, 60, []),
-    "hopper": ("A_enemies/hopper_alien_s11.png", "grey", False, 68, []),
+    "walker": ("A0_walker/green_man_described_s11.png", "gray", False, 64, []),
+    "flyer": ("H_flyer_drones/flyer_drone1_s22.png", "gray", False, 56, []),
+    "swooper": ("A_enemies/swooper_robot_s22.png", "gray", False, 60, []),
+    "hopper": ("A_enemies/hopper_alien_s11.png", "gray", False, 68, []),
     "chaser": ("Y_enemy/chaser_idle_t1.png", "green", False, 76,
                ["Y_enemy/chaser_run1_t1.png", "Y_enemy/chaser_run2_t1.png", "Y_enemy/chaser_run3_t1.png", "Y_enemy/chaser_run4_t1.png"]),
-    "armored": ("A_enemies/armoured_alien_s11.png", "grey", True, 72, []),
-    "urchin": ("H_spike_states/urchin_in_robot_s44.png", "grey", False, 68, []),
-    "shell": ("A_enemies/shell_robot_s11.png", "grey", False, 60, []),
+    "armored": ("A_enemies/armored_alien_s11.png", "gray", True, 72, []),
+    "urchin": ("H_spike_states/urchin_in_robot_s44.png", "gray", False, 68, []),
+    "shell": ("A_enemies/shell_robot_s11.png", "gray", False, 60, []),
     "turret": ("Y_enemy/turret_t1.png", "green", False, 76, []),
-    "popper": ("A_enemies/popper_robot_s11.png", "grey", True, 84, []),
-    "heavy": ("A_enemies/heavy_robot_s11.png", "grey", False, 135, ["Y_enemy/heavy_walk1_t1.png", "Y_enemy/heavy_pass1_t1.png", "Y_enemy/heavy_walk2_t1.png", "Y_enemy/heavy_pass2_t1.png"]),
+    "popper": ("A_enemies/popper_robot_s11.png", "gray", True, 84, []),
+    "heavy": ("A_enemies/heavy_robot_s11.png", "gray", False, 135, ["Y_enemy/heavy_walk1_t1.png", "Y_enemy/heavy_pass1_t1.png", "Y_enemy/heavy_walk2_t1.png", "Y_enemy/heavy_pass2_t1.png"]),
     "boss": ("Y_enemy/boss_smooth_t3.png", "green", False, 210, ["Y_enemy/boss2_walk1_t1.png", "Y_enemy/boss_pass1_t1.png", "Y_enemy/boss2_walk2_t1.png", "Y_enemy/boss_pass2_t1.png"]),
     "chaser_boss": ("Y_enemy/charger2_idle_t2.png", "green", False, 210,
                      ["Y_enemy/charger2_c1_t2.png", "Y_enemy/charger2_p1_t2.png", "Y_enemy/charger2_c2_t2.png", "Y_enemy/charger2_p2_t2.png"]),
@@ -47,7 +47,7 @@ SPIKES = {"urchin": (7, 24, "ring"), "boss": (5, 50, "back")}
 
 
 def below_feet_removed(img):
-    """Cut away the grey ground shadow: everything below the lowest dark outline row."""
+    """Cut away the gray ground shadow: everything below the lowest dark outline row."""
     a = np.asarray(img).astype(np.int16)
     dark = (a[..., :3].max(axis=2) < 75) & (a[..., 3] > 200)
     rows = np.nonzero(dark.sum(axis=1) >= 5)[0]
@@ -72,7 +72,7 @@ def one_spike():
 
 def outline_points(scene, count, kind):
     """Points on the enemy's real silhouette, with the outward direction there (angle from straight up), in screen px
-    relative to its feet. 'ring': spread around the top half from the centre. 'back': along the top edge from the head
+    relative to its feet. 'ring': spread around the top half from the center. 'back': along the top edge from the head
     toward the tail, following the slope of the body."""
     img = Image.open(OUT / f"{scene}.png")
     a = np.asarray(img)[..., 3] > 128
@@ -108,7 +108,7 @@ def outline_points(scene, count, kind):
 
 def spike_nodes(name, count, length, kind, tex_id, tex_w, tex_h):
     """Scene text for the spike pieces: each is a Sprite2D whose base is sunk into the body's real outline, drawn behind
-    the body picture so it looks like it grows out from under the armour."""
+    the body picture so it looks like it grows out from under the armor."""
     lines = []
     scale = length / tex_h  # the spike picture is drawn `length` px long on screen
     for i, (px, py, ang) in enumerate(outline_points(name, count, kind)):
@@ -133,13 +133,13 @@ def cut(path, background, flip):
     img = Image.open(C / path)
     # pictures generated for the walk cycle are on green whatever the standing picture used
     on_green = background == "green" or "Y_enemy" in str(path)
-    img = cutout(img, 28, True) if on_green else cutout_grey(img)
+    img = cutout(img, 28, True) if on_green else cutout_gray(img)
     img = below_feet_removed(img)  # also catches a faint shadow left under the feet by the green edits
     return img.transpose(Image.FLIP_LEFT_RIGHT) if flip else img
 
 
-def centre_on_mass(img):
-    """Pad so the weight of the figure (not a stretched leg or tail) is at the horizontal centre."""
+def center_on_mass(img):
+    """Pad so the weight of the figure (not a stretched leg or tail) is at the horizontal center."""
     cx = np.nonzero(np.asarray(img)[..., 3] > 128)[1].mean()
     half = max(cx, img.width - cx)
     out = Image.new("RGBA", (round(half * 2), img.height), (0, 0, 0, 0))
@@ -160,7 +160,7 @@ for scene, (pic, background, flip, height, walks) in ENEMIES.items():
         k = 2.0 * height / img.height
         img = img.resize((max(1, round(img.width * k)), max(1, round(img.height * k))), Image.LANCZOS)
         if walks:
-            img = centre_on_mass(img)
+            img = center_on_mass(img)
         img.save(OUT / f"{scene}{suffix}.png")
     img = Image.open(OUT / f"{scene}.png")
     w2, h2 = img.size

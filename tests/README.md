@@ -8,7 +8,7 @@ Run from the project folder.
 Windows PowerShell (use Godot's **console** build so the output shows; set the variable once per window):
 
 ```powershell
-$godot = "C:\path\to\Godot_v4.7.2-stable_win64_console.exe"
+$godot = ".\storage\Godot\Godot_v4.7.2-stable_win64_console.exe"
 & $godot --headless --path . --script res://tests/run_tests.gd
 ```
 

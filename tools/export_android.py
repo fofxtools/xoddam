@@ -56,7 +56,11 @@ def main() -> None:
     print("exporting (the first run also imports every picture for Android; that takes a few minutes) ...")
     result = subprocess.run([godot, "--headless", "--path", str(ROOT), "--export-release", "Android", str(OUT)], env=child_env)
     if result.returncode != 0 or not OUT.exists():
-        sys.exit(f"export failed (exit code {result.returncode}); read the messages above")
+        sys.exit(
+            f"export failed (exit code {result.returncode}); read the messages above.\n"
+            "If they mention the Android SDK or Java SDK path: set both in Godot under Editor Settings > Export > Android "
+            "(see docs/android-build.md)."
+        )
     print(f"\nbuilt {OUT} ({OUT.stat().st_size / 1e6:.1f} MB)")
 
     sdk = Path(env.get("ANDROID_SDK_ROOT") or Path.home() / "Android" / "Sdk")

@@ -40,7 +40,7 @@ const SOFT_TOP_MAX := 90.0
 @export var ledge_offset := 34.0
 ## A chaser that stands still (idle pose) until it spots the player, then runs.
 @export var idle_until_chased := false
-## Distance (px) travelled per walk picture; 0 means 0.8 x height. Only used when the enemy has walk pictures.
+## Distance (px) traveled per walk picture; 0 means 0.8 x height. Only used when the enemy has walk pictures.
 @export var frame_stride := 0.0
 
 @export_group("Flyer and swooper")
@@ -193,7 +193,7 @@ func _load_walk_frames() -> void:
 	_idle_tex = _art.texture
 
 
-## Walk pictures change with distance travelled, and the whole body also gets some weight: it dips and squashes as a
+## Walk pictures change with distance traveled, and the whole body also gets some weight: it dips and squashes as a
 ## foot lands, rises and stretches as the other leg swings through, and sways side to side. Big enemies (the heavy and
 ## the bosses) also kick up a puff of dust on every footstep.
 func _animate_frames(delta: float) -> void:
